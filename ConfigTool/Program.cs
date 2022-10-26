@@ -46,9 +46,6 @@ namespace ConfigTool
                 }
                 foreach (string filePath in files)
                 {
-
-
-
                     Console.WriteLine(filePath);
                     string[] tempFilePath = filePath.Split('\\');
                     string configName = tempFilePath[tempFilePath.Length - 1].Replace(".csv","");

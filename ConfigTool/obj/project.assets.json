@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\DJHub\\DJConfigSystem\\Config\\Tool\\ConfigTool\\ConfigTool\\ConfigTool.csproj",
+      "projectUniqueName": "D:\\DJHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj",
       "projectName": "ConfigTool",
-      "projectPath": "D:\\DJHub\\DJConfigSystem\\Config\\Tool\\ConfigTool\\ConfigTool\\ConfigTool.csproj",
+      "projectPath": "D:\\DJHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "D:\\DJHub\\DJConfigSystem\\Config\\Tool\\ConfigTool\\ConfigTool\\obj\\",
+      "outputPath": "D:\\DJHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config",

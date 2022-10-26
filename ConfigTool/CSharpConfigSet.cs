@@ -10,12 +10,17 @@ namespace ConfigTool
         public string GetArray(string configName,string typeName, string fieldName,int index,ref int num,int flag, int size = 0)//模式1和模式2
         {
             string temp;
+            string parse = typeName + ".Parse(data[i][temp" + (num + 1) + "]);";
+            if (typeName=="string" || typeName == "String")
+            {
+                parse = "data[i][temp" + (num + 1) + "];";
+            }
             if (flag==1)
             {
                 index += 1;
                 temp = "\t\tfor (int temp" + (num+1) + " = "+ index+"; temp" + (num+1) + " < " + index + " + " + size+"; temp" + (num+1) + "++)" + newLine +
                         "\t\t{" + newLine +
-                        "\t\t\ttemp" + num + "[temp" + (num+1) + " - " + index + "] = "+ typeName+".Parse(data[i][temp" + (num+1) + "]);" + newLine +
+                        "\t\t\ttemp" + num + "[temp" + (num+1) + " - " + index + "] = "+ parse + newLine +
                         "\t\t}" + newLine +
                         "\t\tcache." + fieldName+" = temp" + num + ";" + newLine;
                 num += 2;
