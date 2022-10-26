@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ConfigTool": {
+      "commandName": "Project",
+      "workingDirectory": "D:\\DJHub\\DJConfigSystem\\Config\\Tool\\ConfigTool"
+    }
+  }
+}
