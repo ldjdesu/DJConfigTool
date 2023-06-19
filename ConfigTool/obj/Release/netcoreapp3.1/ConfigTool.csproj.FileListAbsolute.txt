@@ -51,3 +51,17 @@ D:\DJHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3
 D:\DJHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.dll
 D:\DJHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.pdb
 D:\DJHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.genruntimeconfig.cache
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.exe
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.deps.json
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.runtimeconfig.json
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.runtimeconfig.dev.json
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.dll
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.pdb
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.csproj.AssemblyReference.cache
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.GeneratedMSBuildEditorConfig.editorconfig
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.AssemblyInfoInputs.cache
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.AssemblyInfo.cs
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.csproj.CoreCompileInputs.cache
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.dll
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.pdb
+D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Release\netcoreapp3.1\ConfigTool.genruntimeconfig.cache

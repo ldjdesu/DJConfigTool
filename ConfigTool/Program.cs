@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -120,6 +121,10 @@ namespace ConfigTool
             //构建字段
             for (int i = 0; i < typeStr.Length; i++)
             {
+                if (typeStr[i].Contains("note"))
+                {
+                    continue;
+                }
                 if (typeStr[i].Contains("_"))
                 {
                     string[] typeDivision = typeStr[i].Split('_');
@@ -178,12 +183,15 @@ namespace ConfigTool
 
         static private string GenerateSet(ConfigSet configSet, string configName, string[] text, string filePath)
         {
-
-
-
             string[] typeStr = text[1].Split(',');//0行是注释，跳过
             string[] fildStr = text[2].Split(',');
             string[] indexStr = text[3].Split(',');
+
+            HashSet<int> noteSet = new HashSet<int>();//注释列;
+            for (int i = 0; i < fildStr.Length; i++)
+            {
+                if (typeStr[i].Contains("note")) noteSet.Add(i);
+            }
             bool hasNoUnique = false;
             for (int i = 0; i < indexStr.Length; i++)
             {
@@ -201,7 +209,7 @@ namespace ConfigTool
             indexType[] indexTypes = new indexType[typeStr.Length];//索引类型标记（0为不索引，1为Unique，2为NoUnique）
             for (int i = 0; i < indexStr.Length; i++)
             {
-                if (indexStr[i].Length != 0)
+                if (indexStr[i].Length != 0&& !noteSet.Contains(i))
                 {
                     string[] indexDivision = indexStr[i].Split('_');
                     if (indexDivision[0] == "Index")
@@ -248,6 +256,10 @@ namespace ConfigTool
             outPut += configSet.GetDeserialize(configName);
             for (int i = 0; i < typeStr.Length; i++)
             {
+                if (noteSet.Contains(i))
+                {
+                    continue;
+                }
                 if (typeStr[i].Contains("_"))
                 {
                     string[] typeDivision = typeStr[i].Split('_');
@@ -318,6 +330,10 @@ namespace ConfigTool
 
             for (int i = 0; i < typeStr.Length; i++)
             {
+                if (noteSet.Contains(i))
+                {
+                    continue;
+                }
                 if (!typeStr[i].Contains("_"))
                 {
                     switch (indexTypes[i])

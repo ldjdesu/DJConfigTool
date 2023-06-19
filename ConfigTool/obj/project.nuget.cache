@@ -1,8 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "dIeNAD73KB29xv3UacMEPJGF6//LkdWl3Tv5CAKr45QXvUUaNWtjdYTYu7/s+UGrp5G2XAIBT7gT+RGAcNR/uA==",
+  "dgSpecHash": "HtSJgknDhoetm/q7fhjL7fLPSJQlN8gG4XpCAJRpcaFfGM1bGx/XoDjlzsIR2RL/FU/impp42Dil8UR8bKLjtA==",
   "success": true,
-  "projectFilePath": "D:\\DJHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "D:\\ProjectHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\刘端静\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\3.1.0\\microsoft.windowsdesktop.app.ref.3.1.0.nupkg.sha512",
+    "C:\\Users\\刘端静\\.nuget\\packages\\microsoft.netcore.app.ref\\3.1.0\\microsoft.netcore.app.ref.3.1.0.nupkg.sha512",
+    "C:\\Users\\刘端静\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.1.10\\microsoft.aspnetcore.app.ref.3.1.10.nupkg.sha512",
+    "C:\\Users\\刘端静\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.1.32\\microsoft.netcore.app.host.win-x64.3.1.32.nupkg.sha512"
+  ],
   "logs": []
 }
