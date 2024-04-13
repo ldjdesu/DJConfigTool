@@ -95,7 +95,7 @@ namespace ConfigTool
         }
         public string GetStruct(string configName, string fieldName)
         {
-            return "\t\tcache." + fieldName + " = new " + configName + "DataConfig.S_" + fieldName + "" + newLine +
+            return "\t\tcache." + fieldName + " = new ConfigStruct.S_" + fieldName + "" + newLine +
                    "\t\t{" + newLine;
         }
         public string GetStructType(string typeName, string fieldName,int index)
@@ -111,7 +111,7 @@ namespace ConfigTool
             index += 1;
             string temp = "\t\tfor (int temp"+ (num+1)+" = "+ index+"; temp" + (num+1)+" < "+ index+" + "+ arraySize+" * "+ structSize+"; temp" + (num+1)+" += "+ structSize+")" + newLine +
                            "\t\t{" + newLine +
-                           "\t\t\ttemp"+ num+"[(temp"+ (num+1)+" - "+ index+") / "+ structSize+"] = new " + configName+"DataConfig.S_"+ fieldName + newLine +
+                           "\t\t\ttemp"+ num+"[(temp"+ (num+1)+" - "+ index+") / "+ structSize+"] = new ConfigStruct.S_" + fieldName + newLine +
                            "\t\t\t{" + newLine;
             num += 2;
             return temp;

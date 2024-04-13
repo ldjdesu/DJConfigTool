@@ -2,7 +2,7 @@
   "profiles": {
     "ConfigTool": {
       "commandName": "Project",
-      "workingDirectory": "D:\\DJHub\\-Project007\\Config\\Tool\\DJConfigTool"
+      "workingDirectory": "D:\\工作\\项目\\UnityProject\\HeavenCompany\\Config\\Tool\\DJConfigTool"
     }
   }
 }

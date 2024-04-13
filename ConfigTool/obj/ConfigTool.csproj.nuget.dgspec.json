@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\ProjectHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj": {}
+    "D:\\工作\\项目\\UnityProject\\HeavenCompany\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj": {}
   },
   "projects": {
-    "D:\\ProjectHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj": {
+    "D:\\工作\\项目\\UnityProject\\HeavenCompany\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\ProjectHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj",
+        "projectUniqueName": "D:\\工作\\项目\\UnityProject\\HeavenCompany\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj",
         "projectName": "ConfigTool",
-        "projectPath": "D:\\ProjectHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj",
+        "projectPath": "D:\\工作\\项目\\UnityProject\\HeavenCompany\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj",
         "packagesPath": "C:\\Users\\刘端静\\.nuget\\packages\\",
-        "outputPath": "D:\\ProjectHub\\-Project007\\Config\\Tool\\DJConfigTool\\ConfigTool\\obj\\",
+        "outputPath": "D:\\工作\\项目\\UnityProject\\HeavenCompany\\Config\\Tool\\DJConfigTool\\ConfigTool\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

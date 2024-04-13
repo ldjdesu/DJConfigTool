@@ -10,7 +10,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.runtimeconfig.json" target="lib\netcoreapp3.1\ConfigTool.runtimeconfig.json" />
-    <file src="D:\ProjectHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.dll" target="lib\netcoreapp3.1\ConfigTool.dll" />
+    <file src="D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.runtimeconfig.json" target="lib\netcoreapp3.1\ConfigTool.runtimeconfig.json" />
+    <file src="D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\bin\Release\netcoreapp3.1\ConfigTool.dll" target="lib\netcoreapp3.1\ConfigTool.dll" />
   </files>
 </package>

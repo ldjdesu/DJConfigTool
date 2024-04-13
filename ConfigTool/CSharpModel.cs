@@ -11,12 +11,20 @@
         {
             return "\tpublic " + type + " " + fieldName + ";" + newLine;
         }
-        public string GetStart(string className)
+        public string GetStart()
         {
-            return "//该脚本为打表工具自动生成，切勿修改！"+ newLine+
+            return "//该脚本为打表工具自动生成，切勿修改！" + newLine +
                     "using UnityEngine;" + newLine +
-                    "using System;" + newLine +
-                    "public struct " + className + "DataConfig:IDataConfigLine" + newLine +
+                    "using System;" + newLine;
+        }
+        public string GetClassHead(string className)
+        {
+            return "public struct " + className + "DataConfig:IDataConfigLine" + newLine +
+                    "{" + newLine;
+        }
+        public string GetStructHead()
+        {
+            return "namespace ConfigStruct" + newLine +
                     "{" + newLine;
         }
         public string GetStruct(string fieldName)
@@ -27,10 +35,14 @@
         {
             return "\t\tpublic " + type + " " + fieldName + ";" + newLine;
         }
-        public string GetStructEnd(string fieldName,bool isArray)
+        public string GetStructEnd(string fieldName)
+        {
+            return "\t}" + newLine;
+        }
+        public string GetStructField(string fieldName, bool isArray)
         {
             string temp = isArray ? "[] " : "";
-            return "\t}" + newLine + "\tpublic S_" + fieldName + temp + " " + fieldName + ";" + newLine;
+            return "\tpublic ConfigStruct.S_" + fieldName + temp + " " + fieldName + ";" + newLine;
         }
         public string GetEnd()
         {

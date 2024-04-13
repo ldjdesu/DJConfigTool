@@ -19,6 +19,8 @@ namespace ConfigTool
         }
         static void Main(string[] args)
         {
+            //args = new string[1];
+            //args[0] = "";
             Model model=new CSharpModel();
             ConfigSet configSet = new CSharpConfigSet();
             Console.WriteLine("Hello World!");
@@ -45,12 +47,19 @@ namespace ConfigTool
                     csvMD5 = new List<string>();
                     Console.WriteLine("无MD5文件，将重新创建");
                 }
+                string structStr=model.GetStart()+model.GetStructHead();
+
+                HashSet<string> structKeys=new HashSet<string>();
                 foreach (string filePath in files)
                 {
                     Console.WriteLine(filePath);
                     string[] tempFilePath = filePath.Split('\\');
                     string configName = tempFilePath[tempFilePath.Length - 1].Replace(".csv","");
                     string str = File.ReadAllText(filePath);
+
+                    string[] text = File.ReadAllLines(filePath);
+                    //======================构建model类 Start
+                    string outText = GenerateModel(model, configName, text, filePath, ref structStr, ref structKeys);
 
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     Byte[] newMD5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
@@ -77,20 +86,20 @@ namespace ConfigTool
                     {
                         configName_MD5.Add(configName, newMD5Str);
                     }
-                    string[] text = File.ReadAllLines(filePath);
-                    //======================构建model类 Start
-
-                    string outText= GenerateModel(model, configName, text, filePath);
                     string outPutPath = cSharpPath+"\\" + configName + "DataConfig.cs";
                     File.WriteAllText(outPutPath, outText, Encoding.UTF8);
-
                     //======================构建model类 End
+
                     //======================构建set类 Start
                     outText = GenerateSet(configSet, configName, text, filePath);
                     outPutPath = cSharpPath + "\\" + configName + "_ConfigSet.cs";
                     File.WriteAllText(outPutPath, outText, Encoding.UTF8);
                     //======================构建set类 End
                 }
+                //======================构建Struct类 Start
+                structStr+= model.GetEnd();
+                File.WriteAllText(cSharpPath + "\\ConfigStruct.cs", structStr, Encoding.UTF8);
+                //======================构建Struct类 End
                 string md5Str = "";
                 foreach (var item in configName_MD5)
                 {
@@ -108,11 +117,11 @@ namespace ConfigTool
             Console.WriteLine("构建成功");
         }
 
-        static private string GenerateModel(Model model, string configName, string[] text, string filePath)
+        static private string GenerateModel(Model model, string configName, string[] text, string filePath,ref string structStr,ref HashSet<string> structKeys)
         {
             //构建开头
-            string outPut = model.GetStart(configName);
-
+            string outPut = model.GetStart();
+            outPut += model.GetClassHead(configName);
 
             string[] typeStr = text[1].Split(',');//0行是注释，跳过
             string[] fildStr = text[2].Split(',');
@@ -151,11 +160,17 @@ namespace ConfigTool
                     else if (typeDivision[0] == "Struct")
                     {
                         int size = int.Parse(typeDivision[1]);
-                        outPut += model.GetStruct(fildStr[i]);
                         string structName = fildStr[i];
-                        for (int j = 0; j < size; j++, i++)
+                        if (!structKeys.Contains(structName))
                         {
-                            outPut += model.GetStructType(typeStr[i + 1], fildStr[i + 1]);
+                            structKeys.Add(structName);
+                            structStr += model.GetStruct(structName);//1
+
+                            for (int j = 0; j < size; j++, i++)
+                            {
+                                structStr += model.GetStructType(typeStr[i + 1], fildStr[i + 1]);
+                            }
+                            structStr += model.GetStructEnd(structName);
                         }
                         bool isArray = false;
                         if (flag == 1)
@@ -164,7 +179,7 @@ namespace ConfigTool
                             i += offset * size - size;
                             flag = 0;
                         }
-                        outPut += model.GetStructEnd(structName, isArray);
+                        outPut += model.GetStructField(structName,isArray);
                     }
                     else
                     {
@@ -292,8 +307,8 @@ namespace ConfigTool
                         structName = fildStr[i];
                         if (isArray)
                         {
-                            arrayCache += configSet.GetArrayCache(configName + "DataConfig.S_" + structName, num);
-                            arrayCacheNew += configSet.GetArrayCacheNew(configName + "DataConfig.S_" + structName, num, size);
+                            arrayCache += configSet.GetArrayCache("ConfigStruct.S_" + structName, num);
+                            arrayCacheNew += configSet.GetArrayCacheNew("ConfigStruct.S_" + structName, num, size);
                             outPut += configSet.GetStructArray(configName, fildStr[i], i, ref num, offset, size);
                             for (int j = 0; j < size; j++, i++)
                             {

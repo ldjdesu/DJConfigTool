@@ -12,8 +12,12 @@ namespace ConfigTool
 
         public string GetStructType(string type, string fieldName);
 
-        public string GetStructEnd(string fieldName, bool isArray);
-        public string GetStart(string className);
+        public string GetStructEnd(string fieldName);
+        public string GetStructField(string fieldName, bool isArray);
+        
+        public string GetStart();
+        public string GetStructHead();
+        public string GetClassHead(string className);
         public string GetEnd();
     }
 }
