@@ -308,7 +308,7 @@ namespace ConfigTool
                         if (isArray)
                         {
                             arrayCache += configSet.GetArrayCache("ConfigStruct.S_" + structName, num);
-                            arrayCacheNew += configSet.GetArrayCacheNew("ConfigStruct.S_" + structName, num, size);
+                            arrayCacheNew += configSet.GetArrayCacheNew("ConfigStruct.S_" + structName, num, offset);
                             outPut += configSet.GetStructArray(configName, fildStr[i], i, ref num, offset, size);
                             for (int j = 0; j < size; j++, i++)
                             {
