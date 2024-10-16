@@ -1,0 +1,13 @@
+﻿索引ID,注释,资源名,时间间隔,收益,,,,,,,
+UInt32,note,string,int,Array_Struct,Struct_2_Currency,收益类型,int,收益类型,int,收益类型,int
+id,,path,timeIInterval,3,currency,currencyType,value,currencyType,value,currencyType,value
+Index_Unique,,,,,,,,,,,
+1,测试用卡牌,CardTest,5,,,,1,,2,,3
+2,改革家,Reformer,10,,,,5,,0,,0
+3,梦想家,Dreamer,10,,,,2,,5,,0
+4,奋斗者,Striver,5,,,,2,,5,,0
+5,厨师,Chefer,5,,,,1,,2,,2
+6,行尸走肉,Zombie,5,,,,0,,0,,0
+7,首陀罗,Sudra,2,,,,1,,0,,2
+8,宅居青年,Otaku,2,,,,1,,0,,1
+9,勇士,Warrior,2,,,,3,,5,,0

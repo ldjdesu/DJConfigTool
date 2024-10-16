@@ -1,15 +1,28 @@
-﻿namespace ConfigTool
+﻿using System.Linq;
+
+namespace ConfigTool
 {
     class CSharpModel:Model
     {
         string newLine = System.Environment.NewLine;
-        public string GetArray(string type, string fieldName)
+        /*public string GetArray(string type, string fieldName)
         {
             return "\tpublic " + type + "[] " + fieldName + ";" + newLine;
-        }
-        public string GetType(string type, string fieldName)
+        }*/
+        public string GetType(string type, string fieldName,bool isArray,bool isDefine=false)
         {
-            return "\tpublic " + type + " " + fieldName + ";" + newLine;
+            string temp1 = "";
+            if (isDefine)
+            {
+                temp1 += "ConfigDefine.";
+            }
+            string temp2 = " ";
+            if (isArray)
+            {
+                temp2 = "[] ";
+            }
+               
+            return "\tpublic "+ temp1 + type + temp2 + fieldName + ";" + newLine; ;
         }
         public string GetStart()
         {
@@ -22,27 +35,39 @@
             return "public struct " + className + "DataConfig:IDataConfigLine" + newLine +
                     "{" + newLine;
         }
-        public string GetStructHead()
+        public string GetDefineHead()
         {
-            return "namespace ConfigStruct" + newLine +
+            return "namespace ConfigDefine" + newLine +
                     "{" + newLine;
         }
-        public string GetStruct(string fieldName)
+        public string GetStruct(string type)
         {
-            return "\tpublic struct S_" + fieldName + newLine + "\t{" + newLine;
+            return "\tpublic struct " + type + newLine + "\t{" + newLine;
         }
         public string GetStructType(string type, string fieldName)
         {
-            return "\t\tpublic " + type + " " + fieldName + ";" + newLine;
+            return "\t\tpublic "  + type + " " + fieldName + ";" + newLine;
         }
-        public string GetStructEnd(string fieldName)
+        public string GetStructEnd()
         {
             return "\t}" + newLine;
         }
-        public string GetStructField(string fieldName, bool isArray)
+        public string GetStructField(string type, string fieldName, bool isArray)
         {
             string temp = isArray ? "[] " : "";
-            return "\tpublic ConfigStruct.S_" + fieldName + temp + " " + fieldName + ";" + newLine;
+            return "\tpublic ConfigDefine." + type + temp + " " + fieldName + ";" + newLine;
+        }
+        public string GetEnum(string fieldName)
+        {
+            return "\tpublic enum " + fieldName + newLine + "\t{" + newLine;
+        }
+        public string GetEnumType(string fieldName)
+        {
+            return "\t\t " + fieldName + "," + newLine;
+        }
+        public string GetEnumEnd()
+        {
+            return "\t}" + newLine;
         }
         public string GetEnd()
         {

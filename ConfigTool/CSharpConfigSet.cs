@@ -7,14 +7,16 @@ namespace ConfigTool
     class CSharpConfigSet:ConfigSet
     {
         string newLine = System.Environment.NewLine;
-        public string GetArray(string configName,string typeName, string fieldName,int index,ref int num,int flag, int size = 0)//模式1和模式2
+        public string GetArray(string configName,string typeName, string fieldName,int index,ref int num,int flag, int size = 0, bool isDefine = false)//模式1和模式2
         {
             string temp;
-            string parse = typeName + ".Parse(data[i][temp" + (num + 1) + "]);";
-            if (typeName=="string" || typeName == "String")
+            //string parse = typeName + ".Parse(data[i][temp" + (num + 1) + "]);";
+
+            string parse = GetTypeToString(typeName, "data[i][temp" + (num + 1) + "]")+ ";";
+            /*if (typeName=="string" || typeName == "String")
             {
                 parse = "data[i][temp" + (num + 1) + "];";
-            }
+            }*/
             if (flag==1)
             {
                 index += 1;
@@ -32,15 +34,25 @@ namespace ConfigTool
             }
             return temp;
         }
-        public string GetArrayCache( string typeName, int num)
+        public string GetArrayCache( string typeName, int num,bool isDefine)
         {
-            return "\t"+typeName + "[]" + "temp" + num + ";" + newLine;
+            string temp1 = "";
+            if (isDefine)
+            {
+                temp1 += "ConfigDefine.";
+            }
+            return "\t"+ temp1 + typeName + "[]" + "temp" + num + ";" + newLine;
         }
-        public string GetArrayCacheNew(string typeName,int num,int size)
+        public string GetArrayCacheNew(string typeName,int num,int size, bool isDefine)
         {
-            return "\t\ttemp" + num + " = new " + typeName + "[" + size + "];" + newLine;
+            string temp1 = "";
+            if (isDefine)
+            {
+                temp1 += "ConfigDefine.";
+            }
+            return "\t\ttemp" + num + " = new " + temp1+ typeName + "[" + size + "];" + newLine;
         }
-        public string GetType(string fieldName,string typeName, int index)
+        public string GetType(string fieldName,string typeName, int index, bool isDefine = false)
         {
             string temp = "\t\tcache." + fieldName + " = ";
             temp += GetTypeToString(typeName, "data[i][" + index + "]") + ";" + newLine;
@@ -93,9 +105,9 @@ namespace ConfigTool
             }
             return temp;
         }
-        public string GetStruct(string configName, string fieldName)
+        public string GetStruct(string configName, string typeName,string fieldName)
         {
-            return "\t\tcache." + fieldName + " = new ConfigStruct.S_" + fieldName + "" + newLine +
+            return "\t\tcache." + fieldName + " = new ConfigDefine." + typeName + "" + newLine +
                    "\t\t{" + newLine;
         }
         public string GetStructType(string typeName, string fieldName,int index)
@@ -106,12 +118,12 @@ namespace ConfigTool
         {
             return "\t\t};" + newLine;
         }
-        public string GetStructArray(string configName, string fieldName,int index,ref int num, int arraySize, int structSize)
+        public string GetStructArray(string configName, string typeName,int index,ref int num, int arraySize, int structSize)
         {
             index += 1;
             string temp = "\t\tfor (int temp"+ (num+1)+" = "+ index+"; temp" + (num+1)+" < "+ index+" + "+ arraySize+" * "+ structSize+"; temp" + (num+1)+" += "+ structSize+")" + newLine +
                            "\t\t{" + newLine +
-                           "\t\t\ttemp"+ num+"[(temp"+ (num+1)+" - "+ index+") / "+ structSize+"] = new ConfigStruct.S_" + fieldName + newLine +
+                           "\t\t\ttemp"+ num+"[(temp"+ (num+1)+" - "+ index+") / "+ structSize+ "] = new ConfigDefine." + typeName + newLine +
                            "\t\t\t{" + newLine;
             num += 2;
             return temp;
@@ -120,11 +132,11 @@ namespace ConfigTool
         {
             return "\t\t\t\t" + fieldName + "=" + GetTypeToString(typeName, "data[i][temp" + (num-1) + "+"+ offset+"]") + "," + newLine;
         }
-        public string GetStructArrayEnd(string configName,string structName,int num)
+        public string GetStructArrayEnd(string configName,string fieldName, int num)
         {
             return "\t\t\t};" + newLine +
                    "\t\t}" + newLine +
-                   "\t\tcache." + structName+" = temp"+ (num-2)+";" + newLine;
+                   "\t\tcache." + fieldName + " = temp"+ (num-2)+";" + newLine;
         }
         public string GetKeyStrFunction(string configName,bool isUnique, bool hasNoUnique)
         {
@@ -246,6 +258,10 @@ namespace ConfigTool
         private string GetTypeToString(string typeName,string value)
         {
             string temp;
+            if (typeName=="int")
+            {
+                typeName = "Int32";
+            }
             if (typeName == "string"|| typeName == "String")
             {
                 temp = value ;
@@ -253,12 +269,13 @@ namespace ConfigTool
             else if (typeName == "UInt32" || typeName == "Int32" || typeName == "UInt64" || typeName == "Int64"
                 || typeName == "Boolean" || typeName == "float" || typeName == "double" )
             {
-                temp = typeName + ".Parse(" + value + ")";
+
+                temp = value+".Parse" + typeName+"()";
             }
             else
             {
                 
-                temp = "(" + typeName + ")UInt32.Parse(" + value + ")";
+                temp = "(ConfigDefine." + typeName + ")"+ value + ".ParseUInt32()";
             }
             return temp;
         }

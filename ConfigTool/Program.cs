@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -19,17 +23,28 @@ namespace ConfigTool
         }
         static void Main(string[] args)
         {
-            //args = new string[1];
-            //args[0] = "";
+            args = new string[1];
+            args[0] = "";
             Model model=new CSharpModel();
             ConfigSet configSet = new CSharpConfigSet();
             Console.WriteLine("Hello World!");
             
-            string csvPath = args[0]+ @".\Data\Csv";
+            string csvPath = args[0]+ @".\Data\CsvOld";
+            string csvNewPath = args[0] + @".\Data\CsvNew";
             string cSharpPath = args[0]+ @".\Data\CSharp";
             string md5Path = args[0]+ @".\Data\MD5";
+            string configDefinePath = args[0]+ @".\";
             try
             {
+                string jsonString = File.ReadAllText(configDefinePath + "ConfigDefine.json");//读取外部定义Json
+                Dictionary<string, Dictionary<string,string>> jsonDataTemp = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>> (jsonString);
+                Dictionary<string, List<KeyValuePair<string, string>>> jsonData = new Dictionary<string, List<KeyValuePair<string, string>>>(jsonDataTemp.Count);
+                foreach (var outerEntry in jsonDataTemp)
+                {
+                    // 将内层字典转换为 List<KeyValuePair<string, string>> 保留顺序
+                    var innerList = new List<KeyValuePair<string, string>>(outerEntry.Value);
+                    jsonData.Add(outerEntry.Key, innerList);
+                }
                 var files = Directory.EnumerateFiles(csvPath, "*.csv");//得到所有csv文件
                 List<string> csvMD5;
                 Dictionary<string, string> configName_MD5 = new Dictionary<string, string>();
@@ -47,9 +62,9 @@ namespace ConfigTool
                     csvMD5 = new List<string>();
                     Console.WriteLine("无MD5文件，将重新创建");
                 }
-                string structStr=model.GetStart()+model.GetStructHead();
+                string defineStr=model.GetStart()+model.GetDefineHead();
 
-                HashSet<string> structKeys=new HashSet<string>();
+                HashSet<string> defineKeys=new HashSet<string>();
                 foreach (string filePath in files)
                 {
                     Console.WriteLine(filePath);
@@ -59,7 +74,7 @@ namespace ConfigTool
 
                     string[] text = File.ReadAllLines(filePath);
                     //======================构建model类 Start
-                    string outText = GenerateModel(model, configName, text, filePath, ref structStr, ref structKeys);
+                    string outText = GenerateModel(model, configName, text, filePath, ref defineStr, ref defineKeys,jsonData);
 
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     Byte[] newMD5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
@@ -91,14 +106,29 @@ namespace ConfigTool
                     //======================构建model类 End
 
                     //======================构建set类 Start
-                    outText = GenerateSet(configSet, configName, text, filePath);
+                    outText = GenerateSet(configSet, configName, text, filePath, jsonData);
                     outPutPath = cSharpPath + "\\" + configName + "_ConfigSet.cs";
                     File.WriteAllText(outPutPath, outText, Encoding.UTF8);
                     //======================构建set类 End
+
+                    //======================替换csv文件 Start
+                    outText = GenerateCsv(configName, text, filePath, jsonData);
+                    outPutPath = csvNewPath + "\\" + configName + ".csv";
+                    File.WriteAllText(outPutPath, outText, Encoding.UTF8);
+                    //======================替换csv文件 End
                 }
                 //======================构建Struct类 Start
-                structStr+= model.GetEnd();
-                File.WriteAllText(cSharpPath + "\\ConfigStruct.cs", structStr, Encoding.UTF8);
+                foreach (var item in jsonData)
+                {
+                    defineStr += model.GetEnum(item.Value[0].Value);
+                    for (int i = 1; i < item.Value.Count; i++)
+                    {
+                        defineStr += model.GetEnumType(item.Value[i].Value);
+                    }
+                    defineStr += model.GetEnumEnd();
+                }
+                defineStr += model.GetEnd();
+                File.WriteAllText(cSharpPath + "\\ConfigDefine.cs", defineStr, Encoding.UTF8);
                 //======================构建Struct类 End
                 string md5Str = "";
                 foreach (var item in configName_MD5)
@@ -114,15 +144,15 @@ namespace ConfigTool
                 Console.ReadKey();
             }
 
-            Console.WriteLine("构建成功");
+            Console.WriteLine("构建完成");
         }
 
-        static private string GenerateModel(Model model, string configName, string[] text, string filePath,ref string structStr,ref HashSet<string> structKeys)
+        static private string GenerateModel(Model model, string configName, string[] text, string filePath,ref string defineStr,ref HashSet<string> defineKeys, Dictionary<string, List<KeyValuePair<string, string>>> data)
         {
             //构建开头
             string outPut = model.GetStart();
             outPut += model.GetClassHead(configName);
-
+            var jsonData = data;
             string[] typeStr = text[1].Split(',');//0行是注释，跳过
             string[] fildStr = text[2].Split(',');
             int flag = 0;//标志位(1为结构体数组模式)
@@ -134,7 +164,12 @@ namespace ConfigTool
                 {
                     continue;
                 }
-                if (typeStr[i].Contains("_"))
+                else if (jsonData.ContainsKey(typeStr[i]))
+                {
+                    string type = jsonData[typeStr[i]][0].Value;
+                    outPut += model.GetType(type, fildStr[i],false,true);
+                }
+                else if (typeStr[i].Contains("_"))
                 {
                     string[] typeDivision = typeStr[i].Split('_');
                     if (typeDivision[0] == "Array")
@@ -149,28 +184,41 @@ namespace ConfigTool
                         else if (Regex.IsMatch(suffix, @"^\d+$"))//数组模式1
                         {
                             int size = int.Parse(suffix);
-                            outPut += model.GetArray(typeStr[i + 1], fildStr[i + 1]);
+                            string realTypeStr= typeStr[i + 1];
+                            bool isDefine = false;
+                            if (jsonData.ContainsKey(realTypeStr))
+                            {
+                                realTypeStr= jsonData[realTypeStr][0].Value;
+                                isDefine = true;
+                            }
+                            outPut += model.GetType(realTypeStr, fildStr[i + 1],true, isDefine);
                             i += size;
                         }
                         else//数组模式2
                         {
-                            outPut += model.GetArray(suffix, fildStr[i]);
+                            outPut += model.GetType(suffix, fildStr[i],true);
                         }
                     }
                     else if (typeDivision[0] == "Struct")
                     {
                         int size = int.Parse(typeDivision[1]);
-                        string structName = fildStr[i];
-                        if (!structKeys.Contains(structName))
+                        string structName = typeDivision[2];
+                        string fildName= fildStr[i];
+                        if (!defineKeys.Contains(structName))
                         {
-                            structKeys.Add(structName);
-                            structStr += model.GetStruct(structName);//1
+                            defineKeys.Add(structName);
+                            defineStr += model.GetStruct(structName);//1
 
                             for (int j = 0; j < size; j++, i++)
                             {
-                                structStr += model.GetStructType(typeStr[i + 1], fildStr[i + 1]);
+                                string realTypeStr = typeStr[i + 1];
+                                if (jsonData.ContainsKey(realTypeStr))
+                                {
+                                    realTypeStr = jsonData[realTypeStr][0].Value;
+                                }
+                                defineStr += model.GetStructType(realTypeStr, fildStr[i + 1]);
                             }
-                            structStr += model.GetStructEnd(structName);
+                            defineStr += model.GetStructEnd();
                         }
                         bool isArray = false;
                         if (flag == 1)
@@ -179,7 +227,7 @@ namespace ConfigTool
                             i += offset * size - size;
                             flag = 0;
                         }
-                        outPut += model.GetStructField(structName,isArray);
+                        outPut += model.GetStructField(structName, fildName, isArray);
                     }
                     else
                     {
@@ -189,26 +237,37 @@ namespace ConfigTool
                 }
                 else
                 {
-                    outPut += model.GetType(typeStr[i], fildStr[i]);
+                    outPut += model.GetType(typeStr[i], fildStr[i],false);
                 }
             }
             outPut += model.GetEnd();
             return outPut;
         }
 
-        static private string GenerateSet(ConfigSet configSet, string configName, string[] text, string filePath)
+        static private string GenerateSet(ConfigSet configSet, string configName, string[] text, string filePath, Dictionary<string, List<KeyValuePair<string, string>>> jsonData)
         {
-            string[] typeStr = text[1].Split(',');//0行是注释，跳过
-            string[] fildStr = text[2].Split(',');
-            string[] indexStr = text[3].Split(',');
-
+            string[] typeStrTemp = text[1].Split(',');//0行是注释，跳过
+            string[] fildStrTemp = text[2].Split(',');
+            string[] indexStrTemp = text[3].Split(',');
+            List<string> typeStr = new List<string>();
+            List<string> fildStr = new List<string>();
+            List<string> indexStr = new List<string>();
             HashSet<int> noteSet = new HashSet<int>();//注释列;
-            for (int i = 0; i < fildStr.Length; i++)
+            for (int i = 0; i < typeStrTemp.Length; i++)
             {
-                if (typeStr[i].Contains("note")) noteSet.Add(i);
+                if (typeStrTemp[i].Contains("note"))
+                {
+                    noteSet.Add(i);
+                }
+                else
+                {
+                    typeStr.Add(typeStrTemp[i]);
+                    fildStr.Add(fildStrTemp[i]);
+                    indexStr.Add(indexStrTemp[i]);
+                }
             }
             bool hasNoUnique = false;
-            for (int i = 0; i < indexStr.Length; i++)
+            for (int i = 0; i < indexStr.Count; i++)
             {
                 if (indexStr[i].Contains("NoUnique"))
                 {
@@ -221,10 +280,10 @@ namespace ConfigTool
             //构建字段
             string strDic = "";//索引的开始
             string strDicEnd = "";//索引的结尾
-            indexType[] indexTypes = new indexType[typeStr.Length];//索引类型标记（0为不索引，1为Unique，2为NoUnique）
-            for (int i = 0; i < indexStr.Length; i++)
+            indexType[] indexTypes = new indexType[typeStr.Count];//索引类型标记（0为不索引，1为Unique，2为NoUnique）
+            for (int i = 0; i < indexStr.Count; i++)
             {
-                if (indexStr[i].Length != 0&& !noteSet.Contains(i))
+                if (indexStr[i].Length != 0)
                 {
                     string[] indexDivision = indexStr[i].Split('_');
                     if (indexDivision[0] == "Index")
@@ -269,13 +328,14 @@ namespace ConfigTool
             string arrayCache = "";
             string arrayCacheNew = "";
             outPut += configSet.GetDeserialize(configName);
-            for (int i = 0; i < typeStr.Length; i++)
+            for (int i = 0; i < typeStr.Count; i++)
             {
-                if (noteSet.Contains(i))
+                if (jsonData.ContainsKey(typeStr[i]))
                 {
-                    continue;
+                    string type = jsonData[typeStr[i]][0].Value;
+                    outPut += configSet.GetType(fildStr[i], type, i, true);
                 }
-                if (typeStr[i].Contains("_"))
+                else if (typeStr[i].Contains("_"))
                 {
                     string[] typeDivision = typeStr[i].Split('_');
                     if (typeDivision[0] == "Array")
@@ -290,9 +350,16 @@ namespace ConfigTool
                         else if (Regex.IsMatch(suffix, @"^\d+$"))//数组模式1
                         {
                             int size = int.Parse(suffix);
-                            arrayCache += configSet.GetArrayCache( typeStr[i + 1], num);
-                            arrayCacheNew += configSet.GetArrayCacheNew(typeStr[i + 1], num, size);
-                            outPut += configSet.GetArray(configName, typeStr[i + 1], fildStr[i + 1], i, ref num, 1, size);
+                            string realTypeStr = typeStr[i + 1];
+                            bool isDefine = false;
+                            if (jsonData.ContainsKey(realTypeStr))
+                            {
+                                realTypeStr = jsonData[realTypeStr][0].Value;
+                                isDefine = true;
+                            }
+                            arrayCache += configSet.GetArrayCache(realTypeStr, num, isDefine);
+                            arrayCacheNew += configSet.GetArrayCacheNew(realTypeStr, num, size, isDefine);
+                            outPut += configSet.GetArray(configName, realTypeStr, fildStr[i + 1], i, ref num, 1, size, isDefine);
                             i += size;
                         }
                         else//数组模式2
@@ -304,22 +371,30 @@ namespace ConfigTool
                     {
                         bool isArray = flag == 1;
                         int size = int.Parse(typeDivision[1]);
-                        structName = fildStr[i];
+                        structName = typeDivision[2];
+                        string fildName = fildStr[i];
                         if (isArray)
                         {
-                            arrayCache += configSet.GetArrayCache("ConfigStruct.S_" + structName, num);
-                            arrayCacheNew += configSet.GetArrayCacheNew("ConfigStruct.S_" + structName, num, offset);
-                            outPut += configSet.GetStructArray(configName, fildStr[i], i, ref num, offset, size);
+                            arrayCache += configSet.GetArrayCache("ConfigDefine." + structName, num);
+                            arrayCacheNew += configSet.GetArrayCacheNew("ConfigDefine." + structName, num, offset);
+                            outPut += configSet.GetStructArray(configName, structName, i, ref num, offset, size);
                             for (int j = 0; j < size; j++, i++)
                             {
-                                outPut += configSet.GetStructArrayType(typeStr[i + 1], fildStr[i + 1], num, j);
+                                string realTypeStr = typeStr[i + 1];
+                                bool isDefine = false;
+                                if (jsonData.ContainsKey(realTypeStr))
+                                {
+                                    realTypeStr = jsonData[realTypeStr][0].Value;
+                                    isDefine = true;
+                                }
+                                outPut += configSet.GetStructArrayType(realTypeStr, fildStr[i + 1], num, j);
                             }
                             i += offset * size - size;
-                            outPut += configSet.GetStructArrayEnd(configName, structName, num);
+                            outPut += configSet.GetStructArrayEnd(configName, fildName, num);
                         }
                         else
                         {
-                            outPut += configSet.GetStruct(configName, fildStr[i]);
+                            outPut += configSet.GetStruct(configName, structName, fildName);
                             for (int j = 0; j < size; j++, i++)
                             {
                                 outPut += configSet.GetStructType(typeStr[i + 1], fildStr[i + 1], i + 1);
@@ -343,12 +418,8 @@ namespace ConfigTool
 
             outPut += configSet.GetInit(configName, hasNoUnique, strDic+ arrayCacheNew);
 
-            for (int i = 0; i < typeStr.Length; i++)
+            for (int i = 0; i < typeStr.Count; i++)
             {
-                if (noteSet.Contains(i))
-                {
-                    continue;
-                }
                 if (!typeStr[i].Contains("_"))
                 {
                     switch (indexTypes[i])
@@ -374,6 +445,70 @@ namespace ConfigTool
             outPut += configSet.GetStrAllConfig(configName);
             outPut += configSet.GetEnd();
             return outPut;
+        }
+        static private string GenerateCsv(string csvName, string[] text, string filePath, Dictionary<string, List<KeyValuePair<string, string>>> jsonData)
+        {
+            string str = "";
+            string[] typeStr = text[1].Split(',');
+            for (int i = 1; i < text.Length; i++)
+            {
+                if (i<4)
+                {
+                    continue;
+                }
+                string[] valueStr= text[i].Split(',');
+                string strTemp = "";
+                for (int j = 0; j < valueStr.Length; j++)
+                {
+                    if (typeStr[j].Contains("note"))
+                    {
+                        continue;
+                    }
+                    string value = "";
+                    if (i<3)
+                    {
+                        value = valueStr[j];
+                    }
+                    else
+                    {
+                        string type = typeStr[j];
+                        List<KeyValuePair<string, string>> keyValueList;
+                        if (jsonData.TryGetValue(type, out keyValueList))
+                        {
+                            for (int k = 0; k < keyValueList.Count; k++)
+                            {
+                                if (keyValueList[k].Key == valueStr[j])
+                                {
+                                    value = k.ToString();
+                                    break;
+                                }
+                                if (k == keyValueList.Count)
+                                {
+                                    Console.WriteLine("未能识别的枚举,请检查!  路径为：" + filePath + "  第" + i + "行" + "  第" + j + "列");
+                                    throw new Exception();
+                                }
+                            }
+                        }
+                        else
+                        {
+                            value = valueStr[j];
+                        }
+                    }
+                    string dou = "";
+                    if (j < valueStr.Length)
+                    {
+                        dou = ",";
+                    }
+                    strTemp += value + dou;
+                }
+                string temp = "";
+                if (i < text.Length)
+                {
+                    temp = Environment.NewLine;
+                }
+                str += strTemp + temp;
+            }
+            return str;
         }
     }
 }

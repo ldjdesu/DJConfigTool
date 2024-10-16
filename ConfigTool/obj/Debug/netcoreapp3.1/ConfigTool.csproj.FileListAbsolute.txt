@@ -50,3 +50,17 @@ D:\DJHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1
 D:\DJHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.dll
 D:\DJHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.pdb
 D:\DJHub\-Project007\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.genruntimeconfig.cache
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\bin\Debug\netcoreapp3.1\ConfigTool.exe
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\bin\Debug\netcoreapp3.1\ConfigTool.deps.json
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\bin\Debug\netcoreapp3.1\ConfigTool.runtimeconfig.json
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\bin\Debug\netcoreapp3.1\ConfigTool.runtimeconfig.dev.json
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\bin\Debug\netcoreapp3.1\ConfigTool.dll
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\bin\Debug\netcoreapp3.1\ConfigTool.pdb
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.csproj.AssemblyReference.cache
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.GeneratedMSBuildEditorConfig.editorconfig
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.AssemblyInfoInputs.cache
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.AssemblyInfo.cs
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.csproj.CoreCompileInputs.cache
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.dll
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.pdb
+D:\工作\项目\UnityProject\HeavenCompany\Config\Tool\DJConfigTool\ConfigTool\obj\Debug\netcoreapp3.1\ConfigTool.genruntimeconfig.cache
