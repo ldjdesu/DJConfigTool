@@ -10,13 +10,13 @@ namespace ConfigTool
         public string GetType(string type, string fieldName,bool isArray ,bool isDefine=false);
         public string GetStruct(string type);
 
-        public string GetStructType(string type, string fieldName);
+        public string GetStructType(string type, string fieldName, bool isDefine = false);
 
         public string GetStructEnd();
         public string GetStructField(string type,string fieldName, bool isArray);
         public string GetEnum(string type);
 
-        public string GetEnumType(string fieldName);
+        public string GetEnumType(string fieldName, int index);
 
         public string GetEnumEnd();
 

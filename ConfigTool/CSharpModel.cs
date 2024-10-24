@@ -44,9 +44,15 @@ namespace ConfigTool
         {
             return "\tpublic struct " + type + newLine + "\t{" + newLine;
         }
-        public string GetStructType(string type, string fieldName)
+        public string GetStructType(string type, string fieldName,bool isDefine=false)
         {
-            return "\t\tpublic "  + type + " " + fieldName + ";" + newLine;
+            string temp1 = "";
+            if (isDefine)
+            {
+                temp1 += "ConfigDefine.";
+            }
+
+            return "\t\tpublic " + temp1 + type + " " + fieldName + ";" + newLine;
         }
         public string GetStructEnd()
         {
@@ -61,9 +67,9 @@ namespace ConfigTool
         {
             return "\tpublic enum " + fieldName + newLine + "\t{" + newLine;
         }
-        public string GetEnumType(string fieldName)
+        public string GetEnumType(string fieldName,int index)
         {
-            return "\t\t " + fieldName + "," + newLine;
+            return "\t\t " + fieldName + " = "+index.ToString()+"," + newLine;
         }
         public string GetEnumEnd()
         {

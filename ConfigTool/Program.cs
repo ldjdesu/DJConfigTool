@@ -7,8 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace ConfigTool
@@ -21,10 +21,37 @@ namespace ConfigTool
             NoUnique,//多值
             Unique,//唯一值
         }
+        class CodeTransform
+        {
+            public string name;
+            public string code;
+            public List<CodeTransformItem> items;
+
+            public CodeTransform(string name, string code, List<CodeTransformItem> items)
+            {
+                this.name = name;
+                this.code = code;
+                this.items = items;
+            }
+        }
+        class CodeTransformItem
+        {
+            public string name;
+            public string code;
+            public string value;
+
+            public CodeTransformItem(string name, string code, string value)
+            {
+                this.name = name;
+                this.code = code;
+                this.value = value;
+            }
+        }
+
         static void Main(string[] args)
         {
-            args = new string[1];
-            args[0] = "";
+            /*args = new string[1];
+            args[0] = "";*/
             Model model=new CSharpModel();
             ConfigSet configSet = new CSharpConfigSet();
             Console.WriteLine("Hello World!");
@@ -33,18 +60,44 @@ namespace ConfigTool
             string csvNewPath = args[0] + @".\Data\CsvNew";
             string cSharpPath = args[0]+ @".\Data\CSharp";
             string md5Path = args[0]+ @".\Data\MD5";
-            string configDefinePath = args[0]+ @".\";
+            string ConfigDefinePath = args[0]+ @".\ConfigDefine.xml";
             try
             {
-                string jsonString = File.ReadAllText(configDefinePath + "ConfigDefine.json");//读取外部定义Json
-                Dictionary<string, Dictionary<string,string>> jsonDataTemp = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>> (jsonString);
-                Dictionary<string, List<KeyValuePair<string, string>>> jsonData = new Dictionary<string, List<KeyValuePair<string, string>>>(jsonDataTemp.Count);
-                foreach (var outerEntry in jsonDataTemp)
+                XmlDocument definedoc = new XmlDocument();
+                definedoc.Load(ConfigDefinePath);
+                Dictionary<string, CodeTransform> enumDic = new Dictionary<string, CodeTransform>();
+                XmlNodeList enumNodeList = definedoc.SelectNodes("/definitions/enumDefine/enum");
+                for (int i = 0; i < enumNodeList.Count; i++)
                 {
-                    // 将内层字典转换为 List<KeyValuePair<string, string>> 保留顺序
-                    var innerList = new List<KeyValuePair<string, string>>(outerEntry.Value);
-                    jsonData.Add(outerEntry.Key, innerList);
+                    string enumStr = enumNodeList[i].Attributes["name"].Value;
+                    string enumCode = enumNodeList[i].Attributes["code"].Value;
+                    XmlNodeList fieldList = enumNodeList[i].ChildNodes;
+                    List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
+                    for (int j = 0; j < fieldList.Count; j++)
+                    {
+                        var field = fieldList[j];
+                        items.Add(new CodeTransformItem(field.Attributes["name"].Value, field.Attributes["code"].Value, field.Attributes["index"].Value));
+                    }
+                    enumDic.Add(enumStr, new CodeTransform(enumStr, enumCode, items));
                 }
+                Dictionary<string, CodeTransform> structDic = new Dictionary<string, CodeTransform>();
+                XmlNodeList structNodeList = definedoc.SelectNodes("/definitions/structDefine/struct");
+                for (int i = 0; i < structNodeList.Count; i++)
+                {
+                    string structStr = structNodeList[i].Attributes["name"].Value;
+                    string structCode= structNodeList[i].Attributes["code"].Value;
+                    XmlNodeList fieldList = structNodeList[i].ChildNodes;
+                    List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
+                    for (int j = 0; j < fieldList.Count; j++)
+                    {
+                        var field = fieldList[j];
+                        items.Add(new CodeTransformItem(field.Attributes["name"].Value, field.Attributes["code"].Value, field.Attributes["fieldName"].Value));
+                    }
+                    structDic.Add(structStr, new CodeTransform(structStr, structCode, items));
+                }
+
+
+
                 var files = Directory.EnumerateFiles(csvPath, "*.csv");//得到所有csv文件
                 List<string> csvMD5;
                 Dictionary<string, string> configName_MD5 = new Dictionary<string, string>();
@@ -74,7 +127,7 @@ namespace ConfigTool
 
                     string[] text = File.ReadAllLines(filePath);
                     //======================构建model类 Start
-                    string outText = GenerateModel(model, configName, text, filePath, ref defineStr, ref defineKeys,jsonData);
+                    string outText = GenerateModel(model, configName, text, filePath, enumDic, structDic);
 
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     Byte[] newMD5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
@@ -106,30 +159,53 @@ namespace ConfigTool
                     //======================构建model类 End
 
                     //======================构建set类 Start
-                    outText = GenerateSet(configSet, configName, text, filePath, jsonData);
+                    outText = GenerateSet(configSet, configName, text, filePath, enumDic, structDic);
                     outPutPath = cSharpPath + "\\" + configName + "_ConfigSet.cs";
                     File.WriteAllText(outPutPath, outText, Encoding.UTF8);
                     //======================构建set类 End
 
                     //======================替换csv文件 Start
-                    outText = GenerateCsv(configName, text, filePath, jsonData);
+                    outText = GenerateCsv(configName, text, filePath, enumDic, structDic);
                     outPutPath = csvNewPath + "\\" + configName + ".csv";
                     File.WriteAllText(outPutPath, outText, Encoding.UTF8);
                     //======================替换csv文件 End
                 }
-                //======================构建Struct类 Start
-                foreach (var item in jsonData)
+                //======================构建Define类 Start
+                defineStr = model.GetStart() + model.GetDefineHead();
+                for (int i = 0; i < enumNodeList.Count; i++)
                 {
-                    defineStr += model.GetEnum(item.Value[0].Value);
-                    for (int i = 1; i < item.Value.Count; i++)
+                    defineStr += model.GetEnum(enumNodeList[i].Attributes["code"].Value);
+                    XmlNodeList fieldList = enumNodeList[i].ChildNodes;
+                    List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
+                    for (int j = 0; j < fieldList.Count; j++)
                     {
-                        defineStr += model.GetEnumType(item.Value[i].Value);
+                        var field = fieldList[j];
+                        int index = int.Parse(field.Attributes["index"].Value);
+                        defineStr += model.GetEnumType(field.Attributes["code"].Value, index);
                     }
                     defineStr += model.GetEnumEnd();
                 }
+                CodeTransform tempCodeTransform;
+                for (int i = 0; i < structNodeList.Count; i++)
+                {
+                    defineStr += model.GetStruct(structNodeList[i].Attributes["code"].Value);
+                    XmlNodeList fieldList = structNodeList[i].ChildNodes;
+                    List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
+                    for (int j = 0; j < fieldList.Count; j++)
+                    {
+                        var field = fieldList[j];
+                        string realTypeStr = field.Attributes["code"].Value;
+                        if (enumDic.TryGetValue(field.Attributes["name"].Value, out tempCodeTransform))
+                        {
+                            realTypeStr = tempCodeTransform.code;
+                        }
+                        defineStr += model.GetStructType(realTypeStr, field.Attributes["fieldName"].Value);
+                    }
+                    defineStr += model.GetStructEnd();
+                }
                 defineStr += model.GetEnd();
                 File.WriteAllText(cSharpPath + "\\ConfigDefine.cs", defineStr, Encoding.UTF8);
-                //======================构建Struct类 End
+                //======================构建Define类 End
                 string md5Str = "";
                 foreach (var item in configName_MD5)
                 {
@@ -147,16 +223,17 @@ namespace ConfigTool
             Console.WriteLine("构建完成");
         }
 
-        static private string GenerateModel(Model model, string configName, string[] text, string filePath,ref string defineStr,ref HashSet<string> defineKeys, Dictionary<string, List<KeyValuePair<string, string>>> data)
+        static private string GenerateModel(Model model, string configName, string[] text, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
         {
             //构建开头
             string outPut = model.GetStart();
             outPut += model.GetClassHead(configName);
-            var jsonData = data;
+
             string[] typeStr = text[1].Split(',');//0行是注释，跳过
             string[] fildStr = text[2].Split(',');
             int flag = 0;//标志位(1为结构体数组模式)
             int offset = 0;//长度位
+            CodeTransform tempCodeTransform;
             //构建字段
             for (int i = 0; i < typeStr.Length; i++)
             {
@@ -164,9 +241,9 @@ namespace ConfigTool
                 {
                     continue;
                 }
-                else if (jsonData.ContainsKey(typeStr[i]))
+                else if (enumDic.TryGetValue(typeStr[i], out tempCodeTransform))
                 {
-                    string type = jsonData[typeStr[i]][0].Value;
+                    string type = tempCodeTransform.code;
                     outPut += model.GetType(type, fildStr[i],false,true);
                 }
                 else if (typeStr[i].Contains("_"))
@@ -186,9 +263,9 @@ namespace ConfigTool
                             int size = int.Parse(suffix);
                             string realTypeStr= typeStr[i + 1];
                             bool isDefine = false;
-                            if (jsonData.ContainsKey(realTypeStr))
+                            if (enumDic.TryGetValue(realTypeStr, out tempCodeTransform))
                             {
-                                realTypeStr= jsonData[realTypeStr][0].Value;
+                                realTypeStr= tempCodeTransform.code;
                                 isDefine = true;
                             }
                             outPut += model.GetType(realTypeStr, fildStr[i + 1],true, isDefine);
@@ -204,27 +281,11 @@ namespace ConfigTool
                         int size = int.Parse(typeDivision[1]);
                         string structName = typeDivision[2];
                         string fildName= fildStr[i];
-                        if (!defineKeys.Contains(structName))
-                        {
-                            defineKeys.Add(structName);
-                            defineStr += model.GetStruct(structName);//1
-
-                            for (int j = 0; j < size; j++, i++)
-                            {
-                                string realTypeStr = typeStr[i + 1];
-                                if (jsonData.ContainsKey(realTypeStr))
-                                {
-                                    realTypeStr = jsonData[realTypeStr][0].Value;
-                                }
-                                defineStr += model.GetStructType(realTypeStr, fildStr[i + 1]);
-                            }
-                            defineStr += model.GetStructEnd();
-                        }
                         bool isArray = false;
                         if (flag == 1)
                         {
                             isArray = true;
-                            i += offset * size - size;
+                            i += offset * size;
                             flag = 0;
                         }
                         outPut += model.GetStructField(structName, fildName, isArray);
@@ -244,7 +305,7 @@ namespace ConfigTool
             return outPut;
         }
 
-        static private string GenerateSet(ConfigSet configSet, string configName, string[] text, string filePath, Dictionary<string, List<KeyValuePair<string, string>>> jsonData)
+        static private string GenerateSet(ConfigSet configSet, string configName, string[] text, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
         {
             string[] typeStrTemp = text[1].Split(',');//0行是注释，跳过
             string[] fildStrTemp = text[2].Split(',');
@@ -328,11 +389,12 @@ namespace ConfigTool
             string arrayCache = "";
             string arrayCacheNew = "";
             outPut += configSet.GetDeserialize(configName);
+            CodeTransform tempCodeTransform;
             for (int i = 0; i < typeStr.Count; i++)
             {
-                if (jsonData.ContainsKey(typeStr[i]))
+                if (enumDic.TryGetValue(typeStr[i], out tempCodeTransform))
                 {
-                    string type = jsonData[typeStr[i]][0].Value;
+                    string type = tempCodeTransform.code;
                     outPut += configSet.GetType(fildStr[i], type, i, true);
                 }
                 else if (typeStr[i].Contains("_"))
@@ -352,9 +414,9 @@ namespace ConfigTool
                             int size = int.Parse(suffix);
                             string realTypeStr = typeStr[i + 1];
                             bool isDefine = false;
-                            if (jsonData.ContainsKey(realTypeStr))
+                            if (enumDic.TryGetValue(realTypeStr, out tempCodeTransform))
                             {
-                                realTypeStr = jsonData[realTypeStr][0].Value;
+                                realTypeStr = tempCodeTransform.code;
                                 isDefine = true;
                             }
                             arrayCache += configSet.GetArrayCache(realTypeStr, num, isDefine);
@@ -382,9 +444,9 @@ namespace ConfigTool
                             {
                                 string realTypeStr = typeStr[i + 1];
                                 bool isDefine = false;
-                                if (jsonData.ContainsKey(realTypeStr))
+                                if (enumDic.TryGetValue(realTypeStr, out tempCodeTransform))
                                 {
-                                    realTypeStr = jsonData[realTypeStr][0].Value;
+                                    realTypeStr = tempCodeTransform.code;
                                     isDefine = true;
                                 }
                                 outPut += configSet.GetStructArrayType(realTypeStr, fildStr[i + 1], num, j);
@@ -446,7 +508,7 @@ namespace ConfigTool
             outPut += configSet.GetEnd();
             return outPut;
         }
-        static private string GenerateCsv(string csvName, string[] text, string filePath, Dictionary<string, List<KeyValuePair<string, string>>> jsonData)
+        static private string GenerateCsv(string csvName, string[] text, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
         {
             string str = "";
             string[] typeStr = text[1].Split(',');
@@ -458,6 +520,7 @@ namespace ConfigTool
                 }
                 string[] valueStr= text[i].Split(',');
                 string strTemp = "";
+                CodeTransform tempCodeTransform;
                 for (int j = 0; j < valueStr.Length; j++)
                 {
                     if (typeStr[j].Contains("note"))
@@ -472,17 +535,16 @@ namespace ConfigTool
                     else
                     {
                         string type = typeStr[j];
-                        List<KeyValuePair<string, string>> keyValueList;
-                        if (jsonData.TryGetValue(type, out keyValueList))
+                        if (enumDic.TryGetValue(type, out tempCodeTransform))
                         {
-                            for (int k = 0; k < keyValueList.Count; k++)
+                            for (int k = 0; k < tempCodeTransform.items.Count; k++)
                             {
-                                if (keyValueList[k].Key == valueStr[j])
+                                if (tempCodeTransform.items[k].name == valueStr[j])
                                 {
-                                    value = k.ToString();
+                                    value = tempCodeTransform.items[k].value;
                                     break;
                                 }
-                                if (k == keyValueList.Count)
+                                if (k == tempCodeTransform.items.Count)
                                 {
                                     Console.WriteLine("未能识别的枚举,请检查!  路径为：" + filePath + "  第" + i + "行" + "  第" + j + "列");
                                     throw new Exception();

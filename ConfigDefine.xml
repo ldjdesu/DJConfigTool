@@ -1,0 +1,37 @@
+<definitions>
+    <enumDefine>
+        <!-- 测试枚举1 -->
+        <enum name="测试枚举1" code="EnumTest1">
+            <item name="测试0" code="Test0" index="0" />
+            <item name="测试1" code="Test1" index="1" />
+            <item name="测试2" code="Test2" index="2" />
+        </enum>
+
+        <!-- 测试枚举2 -->
+        <enum name="测试枚举2" code="EnumTest2">
+            <item name="测试20" code="Test20" index="0" />
+            <item name="测试21" code="Test21" index="1" />
+            <item name="测试22" code="Test22" index="2" />
+        </enum>
+
+        <!-- 收益类型 -->
+        <enum name="收益类型" code="CurrencyType">
+            <item name="影响力" code="Soul" index="0" />
+            <item name="精神力" code="San" index="1" />
+            <item name="钱" code="Money" index="2" />
+        </enum>
+    </enumDefine>
+    <structDefine>
+        <!-- Currency 结构体 -->
+        <struct name="收益" code="Currency">
+            <field name="收益类型" code="CurrencyType" fieldName="currencyType" />
+            <field name="int" code="int" fieldName="value"/>
+        </struct>
+
+        <!-- AnotherStruct 结构体 -->
+        <struct name="测试结构体" code="TestStruct">
+            <field name="UInt32" code="UInt32" fieldName="aa" />
+            <field name="String" code="String" fieldName="bb" />
+        </struct>
+    </structDefine>
+</definitions>
