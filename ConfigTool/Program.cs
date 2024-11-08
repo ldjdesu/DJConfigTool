@@ -91,7 +91,10 @@ namespace ConfigTool
                     for (int j = 0; j < fieldList.Count; j++)
                     {
                         var field = fieldList[j];
-                        items.Add(new CodeTransformItem(field.Attributes["name"].Value, field.Attributes["code"].Value, field.Attributes["fieldName"].Value));
+                        string name = field.Attributes["name"].Value;
+                        string fieldName = field.Attributes["fieldName"].Value;
+                        string notes = field.Attributes["notes"]?.Value;
+                        items.Add(new CodeTransformItem(name, fieldName, notes));
                     }
                     structDic.Add(structStr, new CodeTransform(structStr, structCode, items));
                 }
@@ -174,32 +177,38 @@ namespace ConfigTool
                 defineStr = model.GetStart() + model.GetDefineHead();
                 for (int i = 0; i < enumNodeList.Count; i++)
                 {
-                    defineStr += model.GetEnum(enumNodeList[i].Attributes["code"].Value);
+                    defineStr += model.GetEnum(enumNodeList[i].Attributes["code"].Value, enumNodeList[i].Attributes["name"].Value);
                     XmlNodeList fieldList = enumNodeList[i].ChildNodes;
                     List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
                     for (int j = 0; j < fieldList.Count; j++)
                     {
                         var field = fieldList[j];
                         int index = int.Parse(field.Attributes["index"].Value);
-                        defineStr += model.GetEnumType(field.Attributes["code"].Value, index);
+                        defineStr += model.GetEnumType(field.Attributes["code"].Value, index, field.Attributes["name"].Value);
                     }
                     defineStr += model.GetEnumEnd();
                 }
                 CodeTransform tempCodeTransform;
                 for (int i = 0; i < structNodeList.Count; i++)
                 {
-                    defineStr += model.GetStruct(structNodeList[i].Attributes["code"].Value);
+                    defineStr += model.GetStruct(structNodeList[i].Attributes["code"].Value, structNodeList[i].Attributes["name"].Value);
                     XmlNodeList fieldList = structNodeList[i].ChildNodes;
                     List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
                     for (int j = 0; j < fieldList.Count; j++)
                     {
                         var field = fieldList[j];
-                        string realTypeStr = field.Attributes["code"].Value;
+                        string realTypeStr = field.Attributes["name"].Value;
+                        string notesStr = "";
+                        if (field.Attributes["notes"] != null)
+                        {
+                            notesStr = field.Attributes["notes"].Value;
+                        }
                         if (enumDic.TryGetValue(field.Attributes["name"].Value, out tempCodeTransform))
                         {
                             realTypeStr = tempCodeTransform.code;
+                            notesStr= tempCodeTransform.name;
                         }
-                        defineStr += model.GetStructType(realTypeStr, field.Attributes["fieldName"].Value);
+                        defineStr += model.GetStructType(realTypeStr, field.Attributes["fieldName"].Value, false, notesStr);
                     }
                     defineStr += model.GetStructEnd();
                 }
@@ -228,8 +237,8 @@ namespace ConfigTool
             //构建开头
             string outPut = model.GetStart();
             outPut += model.GetClassHead(configName);
-
-            string[] typeStr = text[1].Split(',');//0行是注释，跳过
+            string[] notesStr = text[0].Split(',');
+            string[] typeStr = text[1].Split(',');
             string[] fildStr = text[2].Split(',');
             int flag = 0;//标志位(1为结构体数组模式)
             int offset = 0;//长度位
@@ -244,7 +253,26 @@ namespace ConfigTool
                 else if (enumDic.TryGetValue(typeStr[i], out tempCodeTransform))
                 {
                     string type = tempCodeTransform.code;
-                    outPut += model.GetType(type, fildStr[i],false,true);
+                    outPut += model.GetType(type, fildStr[i],false,true, notesStr[i]);
+                }
+                else if (structDic.TryGetValue(typeStr[i], out tempCodeTransform))
+                {
+                    int size = tempCodeTransform.items.Count;
+                    string structName = tempCodeTransform.code;
+                    string fildName = fildStr[i];
+                    bool isArray = false;
+                    if (flag == 1)
+                    {
+                        isArray = true;
+                        outPut += model.GetStructField(structName, fildName, isArray, notesStr[i-1]);
+                        i += offset * size;
+                        flag = 0;
+                    }
+                    else
+                    {
+                        outPut += model.GetStructField(structName, fildName, isArray, notesStr[i]);
+                        i += size;
+                    }
                 }
                 else if (typeStr[i].Contains("_"))
                 {
@@ -268,27 +296,13 @@ namespace ConfigTool
                                 realTypeStr= tempCodeTransform.code;
                                 isDefine = true;
                             }
-                            outPut += model.GetType(realTypeStr, fildStr[i + 1],true, isDefine);
+                            outPut += model.GetType(realTypeStr, fildStr[i + 1],true, isDefine, notesStr[i]);
                             i += size;
                         }
                         else//数组模式2
                         {
-                            outPut += model.GetType(suffix, fildStr[i],true);
+                            outPut += model.GetType(suffix, fildStr[i],true,false, notesStr[i]);
                         }
-                    }
-                    else if (typeDivision[0] == "Struct")
-                    {
-                        int size = int.Parse(typeDivision[1]);
-                        string structName = typeDivision[2];
-                        string fildName= fildStr[i];
-                        bool isArray = false;
-                        if (flag == 1)
-                        {
-                            isArray = true;
-                            i += offset * size;
-                            flag = 0;
-                        }
-                        outPut += model.GetStructField(structName, fildName, isArray);
                     }
                     else
                     {
@@ -298,7 +312,7 @@ namespace ConfigTool
                 }
                 else
                 {
-                    outPut += model.GetType(typeStr[i], fildStr[i],false);
+                    outPut += model.GetType(typeStr[i], fildStr[i],false,false, notesStr[i]);
                 }
             }
             outPut += model.GetEnd();
@@ -390,12 +404,49 @@ namespace ConfigTool
             string arrayCacheNew = "";
             outPut += configSet.GetDeserialize(configName);
             CodeTransform tempCodeTransform;
+            CodeTransform tempCodeTransform2;
             for (int i = 0; i < typeStr.Count; i++)
             {
                 if (enumDic.TryGetValue(typeStr[i], out tempCodeTransform))
                 {
                     string type = tempCodeTransform.code;
                     outPut += configSet.GetType(fildStr[i], type, i, true);
+                }
+                else if (structDic.TryGetValue(typeStr[i], out tempCodeTransform))
+                {
+                    bool isArray = flag == 1;
+                    int size = tempCodeTransform.items.Count;
+                    structName = tempCodeTransform.code;
+                    string fildName = fildStr[i];
+                    if (isArray)
+                    {
+                        arrayCache += configSet.GetArrayCache("ConfigDefine." + structName, num);
+                        arrayCacheNew += configSet.GetArrayCacheNew("ConfigDefine." + structName, num, offset);
+                        outPut += configSet.GetStructArray(configName, structName, i, ref num, offset, size);
+                        for (int j = 0; j < size; j++, i++)
+                        {
+                            string realTypeStr = tempCodeTransform.items[j].name;
+                            bool isDefine = false;
+
+                            if (enumDic.TryGetValue(realTypeStr, out tempCodeTransform2))
+                            {
+                                realTypeStr = tempCodeTransform2.code;
+                                isDefine = true;
+                            }
+                            outPut += configSet.GetStructArrayType(realTypeStr, fildStr[i + 1], num, j);
+                        }
+                        i += offset * size - size;
+                        outPut += configSet.GetStructArrayEnd(configName, fildName, num);
+                    }
+                    else
+                    {
+                        outPut += configSet.GetStruct(configName, structName, fildName);
+                        for (int j = 0; j < size; j++, i++)
+                        {
+                            outPut += configSet.GetStructType(tempCodeTransform.items[j].name, fildStr[i + 1], i + 1);
+                        }
+                        outPut += configSet.GetStructEnd();
+                    }
                 }
                 else if (typeStr[i].Contains("_"))
                 {
@@ -427,41 +478,6 @@ namespace ConfigTool
                         else//数组模式2
                         {
                             outPut += configSet.GetArray(configName, suffix, fildStr[i], i, ref num, 2);
-                        }
-                    }
-                    else if (typeDivision[0] == "Struct")
-                    {
-                        bool isArray = flag == 1;
-                        int size = int.Parse(typeDivision[1]);
-                        structName = typeDivision[2];
-                        string fildName = fildStr[i];
-                        if (isArray)
-                        {
-                            arrayCache += configSet.GetArrayCache("ConfigDefine." + structName, num);
-                            arrayCacheNew += configSet.GetArrayCacheNew("ConfigDefine." + structName, num, offset);
-                            outPut += configSet.GetStructArray(configName, structName, i, ref num, offset, size);
-                            for (int j = 0; j < size; j++, i++)
-                            {
-                                string realTypeStr = typeStr[i + 1];
-                                bool isDefine = false;
-                                if (enumDic.TryGetValue(realTypeStr, out tempCodeTransform))
-                                {
-                                    realTypeStr = tempCodeTransform.code;
-                                    isDefine = true;
-                                }
-                                outPut += configSet.GetStructArrayType(realTypeStr, fildStr[i + 1], num, j);
-                            }
-                            i += offset * size - size;
-                            outPut += configSet.GetStructArrayEnd(configName, fildName, num);
-                        }
-                        else
-                        {
-                            outPut += configSet.GetStruct(configName, structName, fildName);
-                            for (int j = 0; j < size; j++, i++)
-                            {
-                                outPut += configSet.GetStructType(typeStr[i + 1], fildStr[i + 1], i + 1);
-                            }
-                            outPut += configSet.GetStructEnd();
                         }
                     }
                     else

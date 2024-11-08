@@ -1,37 +1,40 @@
 <definitions>
     <enumDefine>
-        <!-- 测试枚举1 -->
-        <enum name="测试枚举1" code="EnumTest1">
+        <enum name="测试枚举" code="EnumTest1">
             <item name="测试0" code="Test0" index="0" />
             <item name="测试1" code="Test1" index="1" />
             <item name="测试2" code="Test2" index="2" />
         </enum>
-
-        <!-- 测试枚举2 -->
-        <enum name="测试枚举2" code="EnumTest2">
-            <item name="测试20" code="Test20" index="0" />
-            <item name="测试21" code="Test21" index="1" />
-            <item name="测试22" code="Test22" index="2" />
-        </enum>
-
-        <!-- 收益类型 -->
         <enum name="收益类型" code="CurrencyType">
             <item name="影响力" code="Soul" index="0" />
             <item name="精神力" code="San" index="1" />
             <item name="钱" code="Money" index="2" />
         </enum>
+        <enum name="结算类型" code="SetAccountType">
+            <item name="时间结算" code="Time" index="0" />
+            <item name="添加时结算" code="Add" index="1" />
+            <item name="移除时结算" code="Remove" index="2" />
+        </enum>
+        <enum name="镜中人属性" code="MirrorActorAttr">
+            <item name="精神力" code="Mind" index="0" />
+            <item name="思潮值" code="Ideology" index="1" />
+            <item name="经济水平" code="Economy" index="2" />
+            <item name="力量" code="Strength" index="3" />
+            <item name="智力" code="Intelligence" index="4" />
+        </enum>
     </enumDefine>
     <structDefine>
-        <!-- Currency 结构体 -->
-        <struct name="收益" code="Currency">
-            <field name="收益类型" code="CurrencyType" fieldName="currencyType" />
-            <field name="int" code="int" fieldName="value"/>
-        </struct>
-
-        <!-- AnotherStruct 结构体 -->
         <struct name="测试结构体" code="TestStruct">
-            <field name="UInt32" code="UInt32" fieldName="aa" />
-            <field name="String" code="String" fieldName="bb" />
+            <field name="UInt32" fieldName="aa" notes="注释"/>
+            <field name="string" fieldName="bb" notes="注释"/>
+        </struct>
+        <struct name="收益" code="Currency">
+            <field name="收益类型" fieldName="currencyType" />
+            <field name="int" fieldName="value" notes="内容"/>
+        </struct>
+        <struct name="结算" code="SetAccount">
+            <field name="结算类型" fieldName="setAccountType" />
+            <field name="int" fieldName="value"/>
         </struct>
     </structDefine>
 </definitions>

@@ -9,7 +9,7 @@ namespace ConfigTool
         {
             return "\tpublic " + type + "[] " + fieldName + ";" + newLine;
         }*/
-        public string GetType(string type, string fieldName,bool isArray,bool isDefine=false)
+        public string GetType(string type, string fieldName,bool isArray,bool isDefine=false,string notes="")
         {
             string temp1 = "";
             if (isDefine)
@@ -21,8 +21,13 @@ namespace ConfigTool
             {
                 temp2 = "[] ";
             }
-               
-            return "\tpublic "+ temp1 + type + temp2 + fieldName + ";" + newLine; ;
+            string temp3 = "";
+            if (notes != "")
+            {
+                temp3 += "\t/// <summary>" + newLine + "\t/// " + notes + newLine + "\t/// </summary>" + newLine;
+            }
+
+            return temp3+"\tpublic " + temp1 + type + temp2 + fieldName + ";" + newLine; ;
         }
         public string GetStart()
         {
@@ -40,36 +45,52 @@ namespace ConfigTool
             return "namespace ConfigDefine" + newLine +
                     "{" + newLine;
         }
-        public string GetStruct(string type)
+        public string GetStruct(string type, string notes)
         {
-            return "\tpublic struct " + type + newLine + "\t{" + newLine;
+            string notesStr = "\t/// <summary>" + newLine + "\t/// " + notes + newLine + "\t/// </summary>" + newLine;
+            return notesStr+"\tpublic struct " + type + newLine + "\t{" + newLine;
         }
-        public string GetStructType(string type, string fieldName,bool isDefine=false)
+        public string GetStructType(string type, string fieldName,bool isDefine=false,string notes="")
         {
             string temp1 = "";
             if (isDefine)
             {
                 temp1 += "ConfigDefine.";
             }
-
-            return "\t\tpublic " + temp1 + type + " " + fieldName + ";" + newLine;
+            string temp2 = "";
+            if (notes != "")
+            {
+                temp2 += "\t/// <summary>" + newLine + "\t/// " + notes + newLine + "\t/// </summary>" + newLine;
+            }
+            return temp2+"\t\tpublic " + temp1 + type + " " + fieldName + ";" + newLine;
         }
         public string GetStructEnd()
         {
             return "\t}" + newLine;
         }
-        public string GetStructField(string type, string fieldName, bool isArray)
+        public string GetStructField(string type, string fieldName, bool isArray,string notes="")
         {
             string temp = isArray ? "[] " : "";
-            return "\tpublic ConfigDefine." + type + temp + " " + fieldName + ";" + newLine;
+            string temp2 = "";
+            if (notes != "")
+            {
+                temp2 += "\t/// <summary>" + newLine + "\t/// " + notes + newLine + "\t/// </summary>" + newLine;
+            }
+            return temp2+"\tpublic ConfigDefine." + type + temp + " " + fieldName + ";" + newLine;
         }
-        public string GetEnum(string fieldName)
+        public string GetEnum(string fieldName,string notes)
         {
-            return "\tpublic enum " + fieldName + newLine + "\t{" + newLine;
+            string notesStr = "\t/// <summary>" + newLine + "\t/// " + notes + newLine + "\t/// </summary>" + newLine;
+            return notesStr+"\tpublic enum " + fieldName + newLine + "\t{" + newLine;
         }
-        public string GetEnumType(string fieldName,int index)
+        public string GetEnumType(string fieldName,int index,string notes="")
         {
-            return "\t\t " + fieldName + " = "+index.ToString()+"," + newLine;
+            string temp = "";
+            if (notes!="")
+            {
+                temp += "\t/// <summary>" + newLine + "\t/// " + notes + newLine + "\t/// </summary>" + newLine;
+            }
+            return temp+"\t\t " + fieldName + " = "+index.ToString()+"," + newLine;
         }
         public string GetEnumEnd()
         {
