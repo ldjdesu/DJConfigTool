@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace ConfigTool
@@ -110,21 +111,29 @@ namespace ConfigTool
             return "\t\tcache." + fieldName + " = new ConfigDefine." + typeName + "" + newLine +
                    "\t\t{" + newLine;
         }
+        public string GetStructTypeLoop(string typeName, string fieldName)
+        {
+            return "\t\t\t" + fieldName + "= new ConfigDefine." + typeName + "{" + newLine;
+        }
         public string GetStructType(string typeName, string fieldName,int index)
         {
             return "\t\t\t" + fieldName + "=" + GetTypeToString(typeName, "data[i][" + index + "]") + "," + newLine;
         }
-        public string GetStructEnd()
+        public string GetStructEnd(bool isLoop=false)
         {
-            return "\t\t};" + newLine;
+            string temp = ";";
+            if (isLoop)
+            {
+                temp = ",";
+            }
+            return "\t\t}"+ temp + newLine;
         }
         public string GetStructArray(string configName, string typeName,int index,ref int num, int arraySize, int structSize)
         {
             index += 1;
             string temp = "\t\tfor (int temp"+ (num+1)+" = "+ index+"; temp" + (num+1)+" < "+ index+" + "+ arraySize+" * "+ structSize+"; temp" + (num+1)+" += "+ structSize+")" + newLine +
                            "\t\t{" + newLine +
-                           "\t\t\ttemp"+ num+"[(temp"+ (num+1)+" - "+ index+") / "+ structSize+ "] = new ConfigDefine." + typeName + newLine +
-                           "\t\t\t{" + newLine;
+                           "\t\t\ttemp"+ num+"[(temp"+ (num+1)+" - "+ index+") / "+ structSize+ "] = new ConfigDefine." + typeName + "{" + newLine;
             num += 2;
             return temp;
         }

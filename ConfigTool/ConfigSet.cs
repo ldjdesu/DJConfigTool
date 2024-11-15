@@ -12,10 +12,11 @@ namespace ConfigTool
         public string GetType(string fieldName, string typeName, int index, bool isDefine = false);
         public string GetDicAdd(string fildName, bool isList, int index, ref int num);
         public string GetStruct(string configName, string typeName,string fieldName);
-
+        public string GetStructTypeLoop( string typeName, string fieldName);
+        
         public string GetStructType(string typeName, string fieldName, int index);
 
-        public string GetStructEnd();
+        public string GetStructEnd(bool isLoop=false);
         public string GetStructArray(string configName, string typeName, int index, ref int num, int arraySize, int structSize);
         public string GetStructArrayType(string typeName, string fieldName, int num,int offset);
         public string GetStructArrayEnd(string configName, string fieldName, int num);

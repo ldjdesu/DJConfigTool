@@ -26,7 +26,7 @@ namespace ConfigTool
             public string name;
             public string code;
             public List<CodeTransformItem> items;
-
+            public int size=1;//占表格列数
             public CodeTransform(string name, string code, List<CodeTransformItem> items)
             {
                 this.name = name;
@@ -98,7 +98,21 @@ namespace ConfigTool
                     }
                     structDic.Add(structStr, new CodeTransform(structStr, structCode, items));
                 }
-
+                //占表格列数计算
+                foreach (var structItem in structDic)
+                {
+                    int size = 0;
+                    foreach (var fieldItem in structItem.Value.items)
+                    {
+                        CodeTransform temp;
+                        size++;
+                        if (structDic.TryGetValue(fieldItem.name, out temp))
+                        {
+                            size += temp.items.Count;
+                        }
+                    }
+                    structItem.Value.size = size;
+                }
 
 
                 var files = Directory.EnumerateFiles(csvPath, "*.csv");//得到所有csv文件
@@ -208,6 +222,12 @@ namespace ConfigTool
                             realTypeStr = tempCodeTransform.code;
                             notesStr= tempCodeTransform.name;
                         }
+                        else if (structDic.TryGetValue(field.Attributes["name"].Value, out tempCodeTransform))
+                        {
+                            realTypeStr = tempCodeTransform.code;
+                            notesStr = tempCodeTransform.name;
+                        }
+
                         defineStr += model.GetStructType(realTypeStr, field.Attributes["fieldName"].Value, false, notesStr);
                     }
                     defineStr += model.GetStructEnd();
@@ -257,7 +277,7 @@ namespace ConfigTool
                 }
                 else if (structDic.TryGetValue(typeStr[i], out tempCodeTransform))
                 {
-                    int size = tempCodeTransform.items.Count;
+                    int size = tempCodeTransform.size;
                     string structName = tempCodeTransform.code;
                     string fildName = fildStr[i];
                     bool isArray = false;
@@ -415,7 +435,7 @@ namespace ConfigTool
                 else if (structDic.TryGetValue(typeStr[i], out tempCodeTransform))
                 {
                     bool isArray = flag == 1;
-                    int size = tempCodeTransform.items.Count;
+                    int size = tempCodeTransform.size;
                     structName = tempCodeTransform.code;
                     string fildName = fildStr[i];
                     if (isArray)
@@ -423,27 +443,65 @@ namespace ConfigTool
                         arrayCache += configSet.GetArrayCache("ConfigDefine." + structName, num);
                         arrayCacheNew += configSet.GetArrayCacheNew("ConfigDefine." + structName, num, offset);
                         outPut += configSet.GetStructArray(configName, structName, i, ref num, offset, size);
-                        for (int j = 0; j < size; j++, i++)
+                        int nowIndex = i;
+                        CodeTransform tempCodeTransformLoop;
+                        for (int j = 0; j < tempCodeTransform.items.Count; j++, i++)
                         {
                             string realTypeStr = tempCodeTransform.items[j].name;
-                            bool isDefine = false;
 
                             if (enumDic.TryGetValue(realTypeStr, out tempCodeTransform2))
                             {
                                 realTypeStr = tempCodeTransform2.code;
-                                isDefine = true;
                             }
-                            outPut += configSet.GetStructArrayType(realTypeStr, fildStr[i + 1], num, j);
+                            if (structDic.TryGetValue(tempCodeTransform.items[j].name, out tempCodeTransformLoop))
+                            {
+                                outPut += "\t" + configSet.GetStructTypeLoop(tempCodeTransformLoop.code, fildStr[i + 1]);
+                                i++;
+                                int start = i;
+                                for (; i < start + tempCodeTransformLoop.items.Count; i++)
+                                {
+                                    realTypeStr = tempCodeTransformLoop.items[i - start].name;
+                                    if (enumDic.TryGetValue(realTypeStr, out tempCodeTransform2))
+                                    {
+                                        realTypeStr = tempCodeTransform2.code;
+                                    }
+                                    outPut += "\t" + configSet.GetStructArrayType(realTypeStr, fildStr[i + 1], num,i- nowIndex);
+                                }
+                                outPut += "\t\t" + configSet.GetStructEnd(true);
+                                i--;
+                            }
+                            else
+                            {
+                                outPut += configSet.GetStructArrayType(realTypeStr, fildStr[i + 1], num, j);
+                            } 
                         }
                         i += offset * size - size;
                         outPut += configSet.GetStructArrayEnd(configName, fildName, num);
+                        flag = 0;
                     }
                     else
                     {
                         outPut += configSet.GetStruct(configName, structName, fildName);
-                        for (int j = 0; j < size; j++, i++)
+                        CodeTransform tempCodeTransformLoop;
+                        for (int j = 0; j < tempCodeTransform.items.Count; j++,i++)
                         {
-                            outPut += configSet.GetStructType(tempCodeTransform.items[j].name, fildStr[i + 1], i + 1);
+
+                            if (structDic.TryGetValue(tempCodeTransform.items[j].name, out tempCodeTransformLoop))
+                            {
+                                outPut += configSet.GetStructTypeLoop(tempCodeTransformLoop.code, fildStr[i+1]);
+                                i++;
+                                int start = i;
+                                for (; i < start + tempCodeTransformLoop.items.Count; i++)
+                                {
+                                    outPut += "\t" + configSet.GetStructType(tempCodeTransformLoop.items[i- start].name, fildStr[i+1], i+1);
+                                }
+                                outPut += "\t" + configSet.GetStructEnd(true);
+                                i--;
+                            }
+                            else
+                            {
+                                outPut += configSet.GetStructType(tempCodeTransform.items[j].name, fildStr[i+1], i+1);
+                            }
                         }
                         outPut += configSet.GetStructEnd();
                     }

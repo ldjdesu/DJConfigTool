@@ -22,11 +22,24 @@
             <item name="力量" code="Strength" index="3" />
             <item name="智力" code="Intelligence" index="4" />
         </enum>
+        <enum name="思潮" code="IdeologicalTrend">
+            <item name="无" code="None" index="0" />
+            <item name="未开化" code="Uncivilized" index="1" />
+            <item name="左上" code="LeftUp" index="2" />
+            <item name="左下" code="LeftDown" index="3" />
+            <item name="右上" code="RightUp" index="4" />
+            <item name="右下" code="RightDown" index="5" />
+        </enum>
     </enumDefine>
     <structDefine>
         <struct name="测试结构体" code="TestStruct">
             <field name="UInt32" fieldName="aa" notes="注释"/>
             <field name="string" fieldName="bb" notes="注释"/>
+        </struct>
+        <struct name="测试结构体嵌套" code="TestStructLoop">
+            <field name="UInt32" fieldName="aa" notes="注释"/>
+            <field name="测试结构体" fieldName="TestStruct1" notes="嵌套1"/>
+            <field name="测试结构体" fieldName="TestStruct2" notes="嵌套2"/>
         </struct>
         <struct name="收益" code="Currency">
             <field name="收益类型" fieldName="currencyType" />
@@ -36,5 +49,6 @@
             <field name="结算类型" fieldName="setAccountType" />
             <field name="int" fieldName="value"/>
         </struct>
+
     </structDefine>
 </definitions>

@@ -48,17 +48,44 @@ public struct Test_ConfigSet:IDataConfig
 		};
 		for (int temp4 = 11; temp4 < 11 + 2 * 2; temp4 += 2)
 		{
-			temp3[(temp4 - 11) / 2] = new ConfigDefine.TestStruct
-			{
+			temp3[(temp4 - 11) / 2] = new ConfigDefine.TestStruct{
 				aa=data[i][temp4+0].ParseUInt32(),
 				bb=data[i][temp4+1],
 			};
 		}
 		cache.testArrayStruct1 = temp3;
+		cache.testStructLoop = new ConfigDefine.TestStructLoop
+		{
+			aa=data[i][16].ParseUInt32(),
+			testStruct1= new ConfigDefine.TestStruct{
+				aa=data[i][18].ParseUInt32(),
+				bb=data[i][19],
+			},
+			testStruct2= new ConfigDefine.TestStruct{
+				aa=data[i][21].ParseUInt32(),
+				bb=data[i][22],
+			},
+		};
+		for (int temp6 = 25; temp6 < 25 + 2 * 7; temp6 += 7)
+		{
+			temp5[(temp6 - 25) / 7] = new ConfigDefine.TestStructLoop{
+				aa=data[i][temp6+0].ParseUInt32(),
+				testStruct1= new ConfigDefine.TestStruct{
+					aa=data[i][temp6+2].ParseUInt32(),
+					bb=data[i][temp6+3],
+				};
+				testStruct2= new ConfigDefine.TestStruct{
+					aa=data[i][temp6+5].ParseUInt32(),
+					bb=data[i][temp6+6],
+				};
+			};
+		}
+		cache.testStructLoopArray = temp5;
 		return cache;
 	}
 	UInt32[]temp1;
 	ConfigDefine.TestStruct[]temp3;
+	ConfigDefine.TestStructLoop[]temp5;
 	public void Init(List<string[]> data)
 	{
 		this.data = data;
@@ -67,6 +94,7 @@ public struct Test_ConfigSet:IDataConfig
 		Dictionary<string,int> idDic = new Dictionary<string,int>();
 		temp1 = new UInt32[2];
 		temp3 = new ConfigDefine.TestStruct[2];
+		temp5 = new ConfigDefine.TestStructLoop[2];
 		for (int i = 0; i < data.Count; i++)
 		{
 			idDic.Add(data[i][0], i);
