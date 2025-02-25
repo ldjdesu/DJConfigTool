@@ -472,7 +472,7 @@ namespace ConfigTool
                             }
                             else
                             {
-                                outPut += configSet.GetStructArrayType(realTypeStr, fildStr[i + 1], num, j);
+                                outPut += configSet.GetStructArrayType(realTypeStr, fildStr[i + 1], num, i - nowIndex);
                             } 
                         }
                         i += offset * size - size;
