@@ -23,6 +23,7 @@ namespace ConfigTool
         public string GetStart();
         public string GetDefineHead();
         public string GetClassHead(string className);
+        public string GetIsNull();
         public string GetEnd();
     }
 }

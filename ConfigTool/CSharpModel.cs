@@ -96,11 +96,14 @@ namespace ConfigTool
         {
             return "\t}" + newLine;
         }
+        public string GetIsNull()
+        {
+            return "\tpublic bool IsNull ()" + newLine + "\t{" + newLine + "\t\treturn id == 0;" + newLine + "}" + newLine ;
+        }
         public string GetEnd()
         {
             return "}";
         }
-
 
     }
 }

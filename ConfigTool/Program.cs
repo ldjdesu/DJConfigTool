@@ -335,6 +335,7 @@ namespace ConfigTool
                     outPut += model.GetType(typeStr[i], fildStr[i],false,false, notesStr[i]);
                 }
             }
+            outPut += model.GetIsNull();
             outPut += model.GetEnd();
             return outPut;
         }
