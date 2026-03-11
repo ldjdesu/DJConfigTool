@@ -1,5 +1,0 @@
-﻿索引ID,注释,,,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,,,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量,卡牌id,数量
-UInt32,note,Array_Struct,卡牌资源结构,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,Array_Struct,卡牌资源结构,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int,UInt32,int
-id,,10,playerCardDeckList,id,num,id,num,id,num,id,num,id,num,id,num,id,num,id,num,id,num,id,num,10,enemyCardDeckList,id,num,id,num,id,num,id,num,id,num,id,num,id,num,id,num,id,num,id,num
-Index_Unique,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-1,测试用开局,,,11,1,5,5,4,2,1001,1,1011,1,1010,1,,,,,,,,,,,5,5,6,2,2003,1,2004,1,2005,1,,,,,,,,,,

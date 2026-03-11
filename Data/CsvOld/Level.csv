@@ -1,6 +1,0 @@
-﻿索引ID,注释,是否标题场景,场景名
-UInt32,note,UInt32,string
-id,,isTitleLevel,sceneName
-Index_Unique,,,
-1,标题场景,1,Assets/Scenes/Build/TitleScene.unity
-2,测试场景,0,Assets/Scenes/Build/MainScene.unity

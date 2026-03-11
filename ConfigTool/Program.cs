@@ -52,8 +52,8 @@ namespace ConfigTool
 
         static void Main(string[] args)
         {
-            args = new string[1];
-            args[0] = "";
+            /*args = new string[1];
+            args[0] = "";*/
             Model model=new CSharpModel();
             ConfigSet configSet = new CSharpConfigSet();
             Console.WriteLine("Hello World!");
@@ -88,7 +88,7 @@ namespace ConfigTool
                 {
                     string structStr = structNodeList[i].Attributes["name"].Value;
                     string structCode= structNodeList[i].Attributes["code"].Value;
-                    XmlNodeList fieldList = structNodeList[i].SelectNodes("item");
+                    XmlNodeList fieldList = structNodeList[i].SelectNodes("field");
                     List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
                     for (int j = 0; j < fieldList.Count; j++)
                     {
@@ -194,7 +194,7 @@ namespace ConfigTool
                 for (int i = 0; i < enumNodeList.Count; i++)
                 {
                     defineStr += model.GetEnum(enumNodeList[i].Attributes["code"].Value, enumNodeList[i].Attributes["name"].Value);
-                    XmlNodeList fieldList = enumNodeList[i].ChildNodes;
+                    XmlNodeList fieldList = enumNodeList[i].SelectNodes("item"); ;
                     List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
                     for (int j = 0; j < fieldList.Count; j++)
                     {
@@ -208,7 +208,7 @@ namespace ConfigTool
                 for (int i = 0; i < structNodeList.Count; i++)
                 {
                     defineStr += model.GetStruct(structNodeList[i].Attributes["code"].Value, structNodeList[i].Attributes["name"].Value);
-                    XmlNodeList fieldList = structNodeList[i].ChildNodes;
+                    XmlNodeList fieldList = structNodeList[i].SelectNodes("field"); ;
                     List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
                     for (int j = 0; j < fieldList.Count; j++)
                     {
@@ -265,9 +265,9 @@ namespace ConfigTool
             };
             using var reader = new StreamReader(filePath, Encoding.UTF8);
             using var parser = new CsvParser(reader, config);
-            string[] row;
-            while ((row = parser.Read()) != null)
+            while (parser.Read())
             {
+                string[] row= parser.Record;
                 rows.Add(row);
             }
             return rows;
@@ -646,10 +646,10 @@ namespace ConfigTool
                     {
                         continue;
                     }
-                    string value;
+                    string value="";
                     string sourceValue = GetCell(valueStr, j);
                     string type = typeStr[j];
-                    if (enumDic.TryGetValue(type, out tempCodeTransform))
+                    if (!string.IsNullOrEmpty(sourceValue)&&enumDic.TryGetValue(type, out tempCodeTransform))
                     {
                         int k = 0;
                         for (; k < tempCodeTransform.items.Count; k++)
