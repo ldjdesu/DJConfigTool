@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using CsvHelper;
+using CsvHelper.Configuration;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace ConfigTool
@@ -143,9 +144,9 @@ namespace ConfigTool
                     string configName = tempFilePath[tempFilePath.Length - 1].Replace(".csv","");
                     string str = File.ReadAllText(filePath);
 
-                    string[] text = File.ReadAllLines(filePath);
+                    List<string[]> csvRows = ReadCsvRows(filePath);
                     //======================构建model类 Start
-                    string outText = GenerateModel(model, configName, text, filePath, enumDic, structDic);
+                    string outText = GenerateModel(model, configName, csvRows, filePath, enumDic, structDic);
 
                     MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
                     Byte[] newMD5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
@@ -177,15 +178,15 @@ namespace ConfigTool
                     //======================构建model类 End
 
                     //======================构建set类 Start
-                    outText = GenerateSet(configSet, configName, text, filePath, enumDic, structDic);
+                    outText = GenerateSet(configSet, configName, csvRows, filePath, enumDic, structDic);
                     outPutPath = cSharpPath + "\\" + configName + "_ConfigSet.cs";
                     File.WriteAllText(outPutPath, outText, Encoding.UTF8);
                     //======================构建set类 End
 
                     //======================替换csv文件 Start
-                    outText = GenerateCsv(configName, text, filePath, enumDic, structDic);
+                    List<string[]> outputRows = GenerateCsv(configName, csvRows, filePath, enumDic, structDic);
                     outPutPath = csvNewPath + "\\" + configName + ".csv";
-                    File.WriteAllText(outPutPath, outText, Encoding.UTF8);
+                    WriteCsvRows(outPutPath, outputRows);
                     //======================替换csv文件 End
                 }
                 //======================构建Define类 Start
@@ -253,14 +254,60 @@ namespace ConfigTool
             Console.WriteLine("构建完成");
         }
 
-        static private string GenerateModel(Model model, string configName, string[] text, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
+        static private List<string[]> ReadCsvRows(string filePath)
+        {
+            var rows = new List<string[]>();
+            var config = new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = false,
+                MissingFieldFound = null,
+                BadDataFound = null
+            };
+            using var reader = new StreamReader(filePath, Encoding.UTF8);
+            using var parser = new CsvParser(reader, config);
+            string[] row;
+            while ((row = parser.Read()) != null)
+            {
+                rows.Add(row);
+            }
+            return rows;
+        }
+
+        static private void WriteCsvRows(string filePath, List<string[]> rows)
+        {
+            var config = new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = false
+            };
+            using var writer = new StreamWriter(filePath, false, new UTF8Encoding(true));
+            using var csvWriter = new CsvWriter(writer, config);
+            foreach (var row in rows)
+            {
+                foreach (var cell in row)
+                {
+                    csvWriter.WriteField(cell);
+                }
+                csvWriter.NextRecord();
+            }
+        }
+
+        static private string GetCell(string[] row, int index)
+        {
+            if (index >= 0 && index < row.Length)
+            {
+                return row[index];
+            }
+            return string.Empty;
+        }
+
+        static private string GenerateModel(Model model, string configName, List<string[]> csvRows, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
         {
             //构建开头
             string outPut = model.GetStart();
             outPut += model.GetClassHead(configName);
-            string[] notesStr = text[0].Split(',');
-            string[] typeStr = text[1].Split(',');
-            string[] fildStr = text[2].Split(',');
+            string[] notesStr = csvRows[0];
+            string[] typeStr = csvRows[1];
+            string[] fildStr = csvRows[2];
             int flag = 0;//标志位(1为结构体数组模式)
             int offset = 0;//长度位
             CodeTransform tempCodeTransform;
@@ -341,11 +388,11 @@ namespace ConfigTool
             return outPut;
         }
 
-        static private string GenerateSet(ConfigSet configSet, string configName, string[] text, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
+        static private string GenerateSet(ConfigSet configSet, string configName, List<string[]> csvRows, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
         {
-            string[] typeStrTemp = text[1].Split(',');//0行是注释，跳过
-            string[] fildStrTemp = text[2].Split(',');
-            string[] indexStrTemp = text[3].Split(',');
+            string[] typeStrTemp = csvRows[1];//0行是注释，跳过
+            string[] fildStrTemp = csvRows[2];
+            string[] indexStrTemp = csvRows[3];
             List<string> typeStr = new List<string>();
             List<string> fildStr = new List<string>();
             List<string> indexStr = new List<string>();
@@ -584,70 +631,50 @@ namespace ConfigTool
             outPut += configSet.GetEnd();
             return outPut;
         }
-        static private string GenerateCsv(string csvName, string[] text, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
+        static private List<string[]> GenerateCsv(string csvName, List<string[]> csvRows, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
         {
-            string str = "";
-            string[] typeStr = text[1].Split(',');
-            for (int i = 1; i < text.Length; i++)
+            var outputRows = new List<string[]>();
+            string[] typeStr = csvRows[1];
+            for (int i = 4; i < csvRows.Count; i++)
             {
-                if (i<4)
-                {
-                    continue;
-                }
-                string[] valueStr= text[i].Split(',');
-                string strTemp = "";
+                string[] valueStr= csvRows[i];
+                var row = new List<string>();
                 CodeTransform tempCodeTransform;
-                for (int j = 0; j < valueStr.Length; j++)
+                for (int j = 0; j < typeStr.Length; j++)
                 {
                     if (typeStr[j].Contains("note"))
                     {
                         continue;
                     }
-                    string value = "";
-                    if (i<3)
+                    string value;
+                    string sourceValue = GetCell(valueStr, j);
+                    string type = typeStr[j];
+                    if (enumDic.TryGetValue(type, out tempCodeTransform))
                     {
-                        value = valueStr[j];
+                        int k = 0;
+                        for (; k < tempCodeTransform.items.Count; k++)
+                        {
+                            if (tempCodeTransform.items[k].name == sourceValue)
+                            {
+                                value = tempCodeTransform.items[k].value;
+                                break;
+                            }
+                        }
+                        if (k == tempCodeTransform.items.Count)
+                        {
+                            Console.WriteLine("未能识别的枚举,请检查!  路径为：" + filePath + "  第" + i + "行" + "  第" + j + "列");
+                            throw new Exception();
+                        }
                     }
                     else
                     {
-                        string type = typeStr[j];
-                        if (enumDic.TryGetValue(type, out tempCodeTransform))
-                        {
-                            int k = 0;
-                            for (; k < tempCodeTransform.items.Count; k++)
-                            {
-                                if (tempCodeTransform.items[k].name == valueStr[j])
-                                {
-                                    value = tempCodeTransform.items[k].value;
-                                    break;
-                                }
-                            }
-                            if (k == tempCodeTransform.items.Count)
-                            {
-                                Console.WriteLine("未能识别的枚举,请检查!  路径为：" + filePath + "  第" + i + "行" + "  第" + j + "列");
-                                throw new Exception();
-                            }
-                        }
-                        else
-                        {
-                            value = valueStr[j];
-                        }
+                        value = sourceValue;
                     }
-                    string dou = "";
-                    if (j < valueStr.Length)
-                    {
-                        dou = ",";
-                    }
-                    strTemp += value + dou;
+                    row.Add(value);
                 }
-                string temp = "";
-                if (i < text.Length)
-                {
-                    temp = Environment.NewLine;
-                }
-                str += strTemp + temp;
+                outputRows.Add(row.ToArray());
             }
-            return str;
+            return outputRows;
         }
     }
 }
