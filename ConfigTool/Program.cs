@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using CsvHelper;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace ConfigTool
@@ -50,8 +51,8 @@ namespace ConfigTool
 
         static void Main(string[] args)
         {
-            /*args = new string[1];
-            args[0] = "";*/
+            args = new string[1];
+            args[0] = "";
             Model model=new CSharpModel();
             ConfigSet configSet = new CSharpConfigSet();
             Console.WriteLine("Hello World!");
@@ -71,7 +72,7 @@ namespace ConfigTool
                 {
                     string enumStr = enumNodeList[i].Attributes["name"].Value;
                     string enumCode = enumNodeList[i].Attributes["code"].Value;
-                    XmlNodeList fieldList = enumNodeList[i].ChildNodes;
+                    XmlNodeList fieldList = enumNodeList[i].SelectNodes("item");
                     List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
                     for (int j = 0; j < fieldList.Count; j++)
                     {
@@ -86,7 +87,7 @@ namespace ConfigTool
                 {
                     string structStr = structNodeList[i].Attributes["name"].Value;
                     string structCode= structNodeList[i].Attributes["code"].Value;
-                    XmlNodeList fieldList = structNodeList[i].ChildNodes;
+                    XmlNodeList fieldList = structNodeList[i].SelectNodes("item");
                     List<CodeTransformItem> items = new List<CodeTransformItem>(fieldList.Count);
                     for (int j = 0; j < fieldList.Count; j++)
                     {
@@ -612,18 +613,19 @@ namespace ConfigTool
                         string type = typeStr[j];
                         if (enumDic.TryGetValue(type, out tempCodeTransform))
                         {
-                            for (int k = 0; k < tempCodeTransform.items.Count; k++)
+                            int k = 0;
+                            for (; k < tempCodeTransform.items.Count; k++)
                             {
                                 if (tempCodeTransform.items[k].name == valueStr[j])
                                 {
                                     value = tempCodeTransform.items[k].value;
                                     break;
                                 }
-                                if (k == tempCodeTransform.items.Count)
-                                {
-                                    Console.WriteLine("未能识别的枚举,请检查!  路径为：" + filePath + "  第" + i + "行" + "  第" + j + "列");
-                                    throw new Exception();
-                                }
+                            }
+                            if (k == tempCodeTransform.items.Count)
+                            {
+                                Console.WriteLine("未能识别的枚举,请检查!  路径为：" + filePath + "  第" + i + "行" + "  第" + j + "列");
+                                throw new Exception();
                             }
                         }
                         else

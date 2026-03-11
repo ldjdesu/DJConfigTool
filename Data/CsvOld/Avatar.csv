@@ -1,0 +1,6 @@
+﻿索引ID,注释,角色名,内容,剧本id
+UInt32,note,string,string,UInt32
+id,,name,desc,storyId
+Index_Unique,,,,
+1,,东征基督徒测试版本,包含耶路撒冷夺城战的脚本剧情,1
+2,,商业大亨,测试文本2,2

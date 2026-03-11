@@ -5,22 +5,13 @@
             <item name="测试1" code="Test1" index="1" />
             <item name="测试2" code="Test2" index="2" />
         </enum>
-        <enum name="收益类型" code="CurrencyType">
-            <item name="影响力" code="Soul" index="0" />
-            <item name="精神力" code="San" index="1" />
-            <item name="钱" code="Money" index="2" />
-        </enum>
-        <enum name="结算类型" code="SetAccountType">
-            <item name="时间结算" code="Time" index="0" />
-            <item name="添加时结算" code="Add" index="1" />
-            <item name="移除时结算" code="Remove" index="2" />
-        </enum>
         <enum name="镜中人属性" code="MirrorActorAttr">
-            <item name="精神力" code="Mind" index="0" />
-            <item name="思潮值" code="Ideology" index="1" />
-            <item name="经济水平" code="Economy" index="2" />
-            <item name="力量" code="Strength" index="3" />
-            <item name="智力" code="Intelligence" index="4" />
+            <item name="无" code="None" index="0" />
+            <item name="精神力" code="Mind" index="1" />
+            <item name="思潮值" code="Ideology" index="2" />
+            <item name="经济水平" code="Economy" index="3" />
+            <item name="力量" code="Strength" index="4" />
+            <item name="智力" code="Intelligence" index="5" />
         </enum>
         <enum name="思潮" code="IdeologicalTrend">
             <item name="无" code="None" index="0" />
@@ -30,6 +21,174 @@
             <item name="右上" code="RightUp" index="4" />
             <item name="右下" code="RightDown" index="5" />
         </enum>
+        <enum name="卡牌阵营" code="CardCamp">
+            <item name="通用" code="Normal" index="0" />
+            <item name="天堂" code="Res" index="1" />
+            <item name="基督" code="Christian" index="2" />
+            <item name="穆斯林" code="Muslim" index="3" />
+        </enum>
+        <enum name="卡牌大类" code="CardClass">
+            <item name="单位" code="unit" index="0" />
+            <item name="行为" code="action" index="1" />
+            <item name="建筑" code="Building" index="2" />
+            <item name="资源" code="Res" index="3" />
+            <item name="圣物" code="Relic" index="4" />
+        </enum>
+        <enum name="位置前缀" code="Site">
+            <item name="棋盘外" code="OutPos" index="0" />
+            <item name="棋盘索引" code="Board" index="10000" />
+            <item name="玩家资源位" code="PlayerResPos" index="20000" />
+            <item name="对手资源位" code="EnemyResPos" index="30000" />
+            <item name="对手手牌位" code="EnemyHandPos" index="40000" />
+        </enum>
+        <enum name="卡牌属性" code="CardAttr">
+            <item name="空" code="empty" index="0" />
+            <item name="信仰值" code="faith" index="1" />
+            <item name="费用" code="cost" index="2" />
+            <item name="攻击" code="atk" index="3" />
+            <item name="生命值" code="hp" index="4" />
+            <item name="防御" code="def" index="5" />
+            <item name="速度" code="spd" index="6" />
+            <item name="攻击距离" code="range" index="7" />
+        </enum>
+        <enum name="卡牌标签" code="CardLable">
+            <item name="空" code="empty" index="0" />
+        </enum>
+        <enum name="阵型位置类型" code="LableFormationPosType">
+            <item name="无" code="Nothing" index="0" />
+            <item name="有" code="Have" index="1" />
+            <item name="敌" code="Enemy" index="2" />
+            <item name="友" code="Friendly" index="3" />
+            <item name="单位" code="Unit" index="4" />
+            <item name="建筑" code="Building" index="5" />
+            <item name="敌单位" code="EnemyUnit" index="6" />
+            <item name="敌建筑" code="EnemyBuilding" index="7" />
+            <item name="友单位" code="FriendlyUnit" index="8" />
+            <item name="友建筑" code="FriendlyBuilding" index="9" />
+            <item name="或无" code="OrNothing" index="10" />
+            <item name="或有" code="OrHave" index="11" />
+            <item name="或敌" code="OrEnemy" index="12" />
+            <item name="或友" code="OrFriendly" index="13" />
+            <item name="或单位" code="OrUnit" index="14" />
+            <item name="或建筑" code="OrBuilding" index="15" />
+            <item name="或敌单位" code="OrEnemyUnit" index="16" />
+            <item name="或敌建筑" code="OrEnemyBuilding" index="17" />
+            <item name="或友单位" code="OrFriendlyUnit" index="18" />
+            <item name="或友建筑" code="OrFriendlyBuilding" index="19" />
+        </enum>
+        <enum name="触发器" code="LableTrigger">
+            <item name="被动" code="Passive" index="0" />
+            <item name="打出时" code="OnEnter" index="1" />
+            <item name="回合开始" code="OnTurnStart" index="2" />
+            <item name="回合结束" code="OnTurnEnd" index="3" />
+            <item name="攻击时" code="OnAttack" index="4" />
+            <item name="攻击后" code="AfterAttack" index="5" />
+            <item name="受到攻击时" code="OnHit" index="6" />
+            <item name="受到伤害时" code="OnDamaged" index="7" />
+            <item name="造成伤害时" code="OnDealDamage" index="8" />
+            <item name="击杀时" code="OnKill" index="9" />
+            <item name="死亡时" code="OnDeath" index="10" />
+            <item name="己方卡牌击杀时" code="SelfOnKill" index="11" />
+            <item name="敌方卡牌击杀时" code="TargetOnKill" index="12" />
+            <item name="己方卡牌死亡时" code="SelfOnDeath" index="13" />
+            <item name="敌方卡牌死亡时" code="TargetOnDeath" index="14" />
+            <item name="移动后" code="AfterMove" index="15" />
+            <item name="获得费用时" code="OnCostGet" index="16" />
+            <item name="消耗费用时" code="OnCostSpent" index="17" />
+            <item name="失去阵型时" code="OnLoseFormation" index="18" />
+            <item name="登场后X回合" code="AfterEnter" index="19" />
+            <item name="选择完成后" code="AfterChoose" index="20" />
+            <item name="召唤物的主人死亡时" code="MasterDeath" index="21" />
+        </enum>
+        <enum name="触发条件" code="LableCondition">
+            <item name="无条件" code="None" index="0" />
+            <item name="处于敌方控制区" code="InEnemyZone" index="1" />
+            <item name="未受伤" code="NotDamaged" index="2" />
+            <item name="存在建筑" code="HasBuilding" index="3" />
+            <item name="存在指定Tag" code="HasTag" index="4" /><!-- param:TagID -->
+            <item name="护甲大于0" code="ArmorAboveZero" index="5" />
+            <item name="累计数量" code="Count" index="6" /><!-- param:数量 -->
+            <item name="某属性小于某个值" code="AttrLow" index="7" /><!-- param:值 -->
+        </enum>
+        <enum name="选择器" code="LableSelector">
+            <item name="自身" code="Self" index="0" />
+            <item name="目标" code="Target" index="1" />
+            <item name="目标相邻" code="Adjacent" index="2" />
+            <item name="目标周围" code="Around" index="3" />
+            <item name="所有场上卡牌" code="AllBoardCard" index="4" />
+            <item name="随机场上卡牌" code="RandomBoardCard" index="5" />
+            <item name="目标所在行" code="TargetRow" index="6" />
+            <item name="被摧毁的单位" code="DestroyedAlly" index="7" />
+            <item name="随机手牌" code="RandomHandCard" index="8" />
+            <item name="随机卡组内牌" code="RandomDeckCard" index="9" />
+            <item name="随机卡牌" code="RandomCard" index="10" />
+            <item name="指定卡牌" code="ChooseCard" index="11" /><!-- param:卡牌ID -->
+            <item name="随机位置" code="RandomSite" index="12" />
+            <item name="自身前方位置" code="ForwordSite" index="13" />
+            <item name="己方" code="Owner" index="14" />
+            <item name="敌方" code="Enemy" index="15" />
+        </enum>
+        <enum name="过滤器" code="LableFilter">
+            <item name="无过滤" code="None" index="0" />
+            <item name="己方" code="Ally" index="1" />
+            <item name="敌方" code="Enemy" index="2" />
+            <item name="建筑" code="Building" index="3" />
+            <item name="单位" code="unit" index="4" />
+            <item name="作用牌" code="ActionCard" index="5" />
+            <item name="拥有Tag" code="WithTag" index="6" />
+            <item name="异端" code="Heretic" index="7" />
+            <item name="十字" code="Cross" index="8" />
+            <item name="双月" code="DualMoon" index="9" />
+            <item name="流民" code="Refugee" index="10" />
+        </enum>
+        <enum name="行为" code="LableAction">
+            <item name="造成伤害" code="DealDamage" index="0" />
+            <item name="造成真实伤害" code="DealTrueDamage" index="1" />
+            <item name="获得属性" code="AddAttr" index="2" /><!-- param:卡牌属性ID -->
+            <item name="增加攻击" code="AddAttack" index="3" />
+            <item name="治疗" code="Heal" index="4" />
+            <item name="抽牌" code="DrawCard" index="5" />
+            <item name="获得信仰" code="GainFaith" index="6" />
+            <item name="获得费用" code="GainCost" index="7" />
+            <item name="修改费用" code="ModifyCost" index="8" />
+            <item name="获得状态" code="AddStatus" index="9" /><!-- param:卡牌状态ID -->
+            <item name="移除状态" code="RemoveStatus" index="10" />
+            <item name="升级建筑" code="UpgradeBuilding" index="11" />
+            <item name="召唤单位" code="SummonUnit" index="12" />
+            <item name="复制卡牌到手牌" code="CopyCard" index="13" /><!-- param:多选一则填入卡牌ID1+ID2*1000+ID3*1000000以此类推 -->
+            <item name="改变阵营" code="ChangeCamp" index="14" />
+            <item name="固定移动力" code="SetMoveFixed" index="15" />
+            <item name="禁止攻击" code="SetCannotAttack" index="16" />
+            <item name="调用登场效果" code="DoEnterAction" index="17" />
+            <item name="发动攻击" code="DoAttack" index="18" />
+            <item name="对区域发动攻击" code="DoAttackToArea" index="19" /><!-- param:阵型ID -->
+            <item name="无视护甲" code="IgnoreArmor" index="20" />
+            <item name="升级建筑" code="UpBuilding" index="21" />
+            <item name="提高费用上限" code="UpResLimits" index="22" />
+            <item name="特殊行为" code="SpecialTreatment" index="23" /><!-- param:特殊行为枚举 -->
+            <item name="强化圣物" code="UPSacred" index="24" />
+            <item name="移除圣物" code="RemoveSacred" index="25" />
+            <item name="死亡" code="Death" index="26" />
+            <item name="免疫伤害" code="Invulnerable" index="27" />
+        </enum>
+        <enum name="修饰" code="LableModifier">
+            <item name="无修饰" code="None" index="0" />
+            <item name="无视护甲" code="IgnoreArmor" index="1" />
+            <item name="对建筑双倍" code="DoubleVsBuilding" index="2" />
+            <item name="随机" code="Random" index="3" />
+            <item name="按护甲比例" code="PerArmorScaling" index="4" />
+            <item name="按相邻单位比例" code="PerAdjacentScaling" index="5" />
+            <item name="按Tag数量比例" code="PerTagScaling" index="6" />
+            <item name="按触发时数值比例" code="TriggerValueScaling" index="7" />
+            <item name="按触发条件数值比例" code="ConditionValueScaling" index="8" />
+            <item name="按抽牌堆中所有作用牌数量" code="ActionCardValueScaling" index="9" />
+            <item name="按损失生命值的数量" code="HPlost" index="10" />
+            <item name="按费用比例" code="Cost" index="11" />
+        </enum>
+        <enum name="状态持续时间类型" code="DurationType">
+            <item name="回合消耗" code="Turn" index="0" />
+            <item name="攻击后消耗" code="Atk" index="1" />
+        </enum>
     </enumDefine>
     <structDefine>
         <struct name="测试结构体" code="TestStruct">
@@ -38,17 +197,16 @@
         </struct>
         <struct name="测试结构体嵌套" code="TestStructLoop">
             <field name="UInt32" fieldName="aa" notes="注释"/>
-            <field name="测试结构体" fieldName="TestStruct1" notes="嵌套1"/>
-            <field name="测试结构体" fieldName="TestStruct2" notes="嵌套2"/>
+            <field name="测试结构体" fieldName="testStruct1" notes="嵌套1"/>
+            <field name="测试结构体" fieldName="testStruct2" notes="嵌套2"/>
         </struct>
-        <struct name="收益" code="Currency">
-            <field name="收益类型" fieldName="currencyType" />
-            <field name="int" fieldName="value" notes="内容"/>
+        <struct name="卡牌资源结构" code="CardResStruct">
+            <field name="UInt32" fieldName="id" notes="卡牌id" />
+            <field name="int" fieldName="num" notes="数量"/>
         </struct>
-        <struct name="结算" code="SetAccount">
-            <field name="结算类型" fieldName="setAccountType" />
-            <field name="int" fieldName="value"/>
+        <struct name="卡牌结构位置" code="CardSite">
+            <field name="卡牌资源结构" fieldName="cardResStruct" />
+            <field name="int" fieldName="siteIndex"/>
         </struct>
-
     </structDefine>
 </definitions>

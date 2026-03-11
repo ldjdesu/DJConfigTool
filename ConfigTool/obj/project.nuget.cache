@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "R4Krc88Hr5hHuMYkY8ZMO5ZUduWeWS9MvPXj0vtSdVGAqrF0Jwt8puFwd6x7xb70+IHAnGW9cZ0NscdvfPcZew==",
+  "dgSpecHash": "cLEpAJaznRvzDeujZvj3sm7h6ZRDm1aSOe01xPJV6YpfKhpp8t3cFaxGINJhKzsW38IFO5y0TIdemvJ+MNvs+Q==",
   "success": true,
   "projectFilePath": "D:\\工作\\项目\\UnityProject\\HeavenCompany\\Config\\Tool\\DJConfigTool\\ConfigTool\\ConfigTool.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\刘端静\\.nuget\\packages\\csvhelper\\33.1.0\\csvhelper.33.1.0.nupkg.sha512",
+    "C:\\Users\\刘端静\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
     "C:\\Users\\刘端静\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\3.1.0\\microsoft.windowsdesktop.app.ref.3.1.0.nupkg.sha512",
     "C:\\Users\\刘端静\\.nuget\\packages\\microsoft.netcore.app.ref\\3.1.0\\microsoft.netcore.app.ref.3.1.0.nupkg.sha512",
     "C:\\Users\\刘端静\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.1.10\\microsoft.aspnetcore.app.ref.3.1.10.nupkg.sha512",
