@@ -23,9 +23,9 @@ namespace ConfigTool
                 index += 1;
                 temp = "\t\tfor (int temp" + (num+1) + " = "+ index+"; temp" + (num+1) + " < " + index + " + " + size+"; temp" + (num+1) + "++)" + newLine +
                         "\t\t{" + newLine +
-                        "\t\t\ttemp" + num + "[temp" + (num+1) + " - " + index + "] = "+ parse + newLine +
+                        "\t\t\ttemp" + num + "[i][temp" + (num+1) + " - " + index + "] = "+ parse + newLine +
                         "\t\t}" + newLine +
-                        "\t\tcache." + fieldName+" = temp" + num + ";" + newLine;
+                        "\t\tcache." + fieldName+" = temp" + num + "[i];" + newLine;
                 num += 2;
             }
             else
@@ -42,16 +42,20 @@ namespace ConfigTool
             {
                 temp1 += "ConfigDefine.";
             }
-            return "\t"+ temp1 + typeName + "[]" + "temp" + num + ";" + newLine;
+            return "\t"+ temp1 + typeName + "[][] temp" + num + ";" + newLine;
         }
-        public string GetArrayCacheNew(string typeName,int num,int size, bool isDefine)
+        public string GetArrayCacheNew(string typeName, int num, int size, bool isDefine)
         {
             string temp1 = "";
             if (isDefine)
             {
                 temp1 += "ConfigDefine.";
             }
-            return "\t\ttemp" + num + " = new " + temp1+ typeName + "[" + size + "];" + newLine;
+            return "\t\ttemp" + num + " = new " + temp1 + typeName + "[data.Count][];" + newLine +
+                "\t\tfor (int i = 0; i < data.Count; i++)" + newLine +
+                "\t\t{" + newLine +
+                "\t\t\ttemp" + num + "[i]" + " = new " + temp1 + typeName + "[" + size + "];" + newLine +
+                "\t\t}" + newLine;
         }
         public string GetType(string fieldName,string typeName, int index, bool isDefine = false)
         {
@@ -133,7 +137,7 @@ namespace ConfigTool
             index += 1;
             string temp = "\t\tfor (int temp"+ (num+1)+" = "+ index+"; temp" + (num+1)+" < "+ index+" + "+ arraySize+" * "+ structSize+"; temp" + (num+1)+" += "+ structSize+")" + newLine +
                            "\t\t{" + newLine +
-                           "\t\t\ttemp"+ num+"[(temp"+ (num+1)+" - "+ index+") / "+ structSize+ "] = new ConfigDefine." + typeName + "{" + newLine;
+                           "\t\t\ttemp"+ num+"[i][(temp"+ (num+1)+" - "+ index+") / "+ structSize+ "] = new ConfigDefine." + typeName + "{" + newLine;
             num += 2;
             return temp;
         }
@@ -145,7 +149,7 @@ namespace ConfigTool
         {
             return "\t\t\t};" + newLine +
                    "\t\t}" + newLine +
-                   "\t\tcache." + fieldName + " = temp"+ (num-2)+";" + newLine;
+                   "\t\tcache." + fieldName + " = temp"+ (num-2)+"[i];" + newLine;
         }
         public string GetKeyStrFunction(string configName,bool isUnique, bool hasNoUnique)
         {
