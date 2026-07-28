@@ -203,7 +203,7 @@ namespace ConfigTool
                             "\t\t}" + newLine +
                             "\t\telse" + newLine +
                             "\t\t{" + newLine +
-                            "\t\t\tconfigLineListCache = new List<" + configName + "DataConfig>(1);" + newLine +
+                            "\t\t\tconfigLineListCache = new List<" + configName + "DataConfig>();" + newLine +
                             "\t\t\tconfigLineListCache.Add(GetConfigByKey(keyName, value));" + newLine +
                             "\t\t}" + newLine +
                             "\t\treturn configLineListCache;" + newLine +
@@ -211,10 +211,10 @@ namespace ConfigTool
                 }
                 else
                 {
-                    return "\tpublic List<IDataConfigLine> GetConfigsByKey(string keyName, string value)" + newLine +
+                    return "\tpublic List<"+ configName+"DataConfig> GetConfigsByKey(string keyName, string value)" + newLine +
                         "\t{" + newLine +
-                        "\t\tList<IDataConfigLine> configLineList; " + newLine +
-                        "\t\tconfigLineList = new List<IDataConfigLine>(1);" + newLine +
+                        "\t\tList<"+ configName+ "DataConfig> configLineList; " + newLine +
+                        "\t\tconfigLineList = new List<"+ configName+ "DataConfig>();" + newLine +
                         "\t\tconfigLineList.Add(GetConfigByKey(keyName, value));" + newLine +
                         "\t\treturn configLineList;" + newLine +
                         "\t}" + newLine;
