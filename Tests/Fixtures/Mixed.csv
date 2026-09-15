@@ -1,0 +1,8 @@
+ID,分组,定长数组,,
+UInt32,string,Array_2,UInt32,UInt32
+id,group,,values,values
+Index_Unique,Index_NoUnique,,,
+10,other,,1,2
+20,target,,3,4
+30,other,,5,6
+40,target,,7,8

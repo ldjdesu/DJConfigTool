@@ -8,54 +8,20 @@ namespace ConfigTool
     class CSharpConfigSet:ConfigSet
     {
         string newLine = System.Environment.NewLine;
-        public string GetArray(string configName,string typeName, string fieldName,int index,ref int num,int flag, int size = 0, bool isDefine = false)//模式1和模式2
+        /// <summary>生成跨列定长数组的逐行分配与解析，不再支持分号数组。</summary>
+        public string GetArray(string configName, string typeName, string fieldName, int index, ref int num, int size, bool isDefine = false)
         {
-            string temp;
-            //string parse = typeName + ".Parse(data[i][temp" + (num + 1) + "]);";
-
-            string parse = GetTypeToString(typeName, "data[i][temp" + (num + 1) + "]")+ ";";
-            /*if (typeName=="string" || typeName == "String")
-            {
-                parse = "data[i][temp" + (num + 1) + "];";
-            }*/
-            if (flag==1)
-            {
-                index += 1;
-                temp = "\t\tfor (int temp" + (num+1) + " = "+ index+"; temp" + (num+1) + " < " + index + " + " + size+"; temp" + (num+1) + "++)" + newLine +
-                        "\t\t{" + newLine +
-                        "\t\t\ttemp" + num + "[i][temp" + (num+1) + " - " + index + "] = "+ parse + newLine +
-                        "\t\t}" + newLine +
-                        "\t\tcache." + fieldName+" = temp" + num + "[i];" + newLine;
-                num += 2;
-            }
-            else
-            {
-                temp = "\t\tcache." + fieldName + " = Array.ConvertAll(data[i][" + index + "].Split(';'), s => ";
-                temp += GetTypeToString(typeName, "s") + ");" + newLine;
-            }
-            return temp;
-        }
-        public string GetArrayCache( string typeName, int num,bool isDefine)
-        {
-            string temp1 = "";
-            if (isDefine)
-            {
-                temp1 += "ConfigDefine.";
-            }
-            return "\t"+ temp1 + typeName + "[][] temp" + num + ";" + newLine;
-        }
-        public string GetArrayCacheNew(string typeName, int num, int size, bool isDefine)
-        {
-            string temp1 = "";
-            if (isDefine)
-            {
-                temp1 += "ConfigDefine.";
-            }
-            return "\t\ttemp" + num + " = new " + temp1 + typeName + "[data.Count][];" + newLine +
-                "\t\tfor (int i = 0; i < data.Count; i++)" + newLine +
+            index++;
+            string elementType = (isDefine ? "ConfigDefine." : "") + typeName;
+            string parse = GetTypeToString(typeName, "data[i][temp" + (num + 1) + "]") + ";";
+            string temp = "\t\tvar temp" + num + " = new " + elementType + "[" + size + "];" + newLine +
+                "\t\tfor (int temp" + (num + 1) + " = " + index + "; temp" + (num + 1) + " < " + index + " + " + size + "; temp" + (num + 1) + "++)" + newLine +
                 "\t\t{" + newLine +
-                "\t\t\ttemp" + num + "[i]" + " = new " + temp1 + typeName + "[" + size + "];" + newLine +
-                "\t\t}" + newLine;
+                "\t\t\ttemp" + num + "[temp" + (num + 1) + " - " + index + "] = " + parse + newLine +
+                "\t\t}" + newLine +
+                "\t\tcache." + fieldName + " = temp" + num + ";" + newLine;
+            num += 2;
+            return temp;
         }
         public string GetType(string fieldName,string typeName, int index, bool isDefine = false)
         {
@@ -89,25 +55,20 @@ namespace ConfigTool
 
             return temp;
         }
-        public string GetStart(string className, bool hasNoUnique)
+        /// <summary>生成表容器和跨 ConfigSet 值类型副本共享的逐行解析缓存。</summary>
+        public string GetStart(string className, bool hasUnique, bool hasNoUnique)
         {
             string temp = "//该脚本为打表工具自动生成，切勿修改！" + newLine +
-                    "using UnityEngine;" + newLine +
-                    "using System;" + newLine +
-                    "using System.Collections.Generic;" + newLine +
-                    "public struct " + className + "_ConfigSet:IDataConfig" + newLine +
-                    "{" + newLine +
-                    "\tDictionary<string, Dictionary<string,int>> configDic;" + newLine +
-                    "\tList<string[]> data;" + newLine +
-                    "\t" + className + "DataConfig cache;" + newLine +
-                    "\tDictionary<string, int> dicCache;" + newLine +
-                    "\tDictionary<string, List<int>> dicListCache;" + newLine +
-                    "\tList<int> indexListCache;" + newLine +
-                    "\tList<"+ className+"DataConfig> configLineListCache;" + newLine;
+                "using UnityEngine;" + newLine + "using System;" + newLine +
+                "using System.Collections.Generic;" + newLine +
+                "public struct " + className + "_ConfigSet:IDataConfig" + newLine + "{" + newLine +
+                "\tList<string[]> data;" + newLine +
+                "\t" + className + "DataConfig[] parsedRows;" + newLine +
+                "\tbool[] parsedFlags;" + newLine;
+            if (hasUnique)
+                temp += "\tDictionary<string, Dictionary<string, int>> configDic;" + newLine;
             if (hasNoUnique)
-            {
                 temp += "\tDictionary<string, Dictionary<string, List<int>>> configListDic;" + newLine;
-            }
             return temp;
         }
         public string GetStruct(string configName, string typeName,string fieldName)
@@ -132,12 +93,14 @@ namespace ConfigTool
             }
             return "\t\t}"+ temp + newLine;
         }
+        /// <summary>生成结构体数组的首次查询分配与解析。</summary>
         public string GetStructArray(string configName, string typeName,int index,ref int num, int arraySize, int structSize)
         {
             index += 1;
-            string temp = "\t\tfor (int temp"+ (num+1)+" = "+ index+"; temp" + (num+1)+" < "+ index+" + "+ arraySize+" * "+ structSize+"; temp" + (num+1)+" += "+ structSize+")" + newLine +
+            string temp = "\t\tvar temp" + num + " = new ConfigDefine." + typeName + "[" + arraySize + "];" + newLine +
+                           "\t\tfor (int temp"+ (num+1)+" = "+ index+"; temp" + (num+1)+" < "+ index+" + "+ arraySize+" * "+ structSize+"; temp" + (num+1)+" += "+ structSize+")" + newLine +
                            "\t\t{" + newLine +
-                           "\t\t\ttemp"+ num+"[i][(temp"+ (num+1)+" - "+ index+") / "+ structSize+ "] = new ConfigDefine." + typeName + "{" + newLine;
+                           "\t\t\ttemp"+ num+"[(temp"+ (num+1)+" - "+ index+") / "+ structSize+ "] = new ConfigDefine." + typeName + "{" + newLine;
             num += 2;
             return temp;
         }
@@ -149,77 +112,53 @@ namespace ConfigTool
         {
             return "\t\t\t};" + newLine +
                    "\t\t}" + newLine +
-                   "\t\tcache." + fieldName + " = temp"+ (num-2)+"[i];" + newLine;
+                   "\t\tcache." + fieldName + " = temp"+ (num-2)+";" + newLine;
         }
-        public string GetKeyStrFunction(string configName,bool isUnique, bool hasNoUnique)
+        /// <summary>按表的索引种类生成查询；两种索引共存时支持跨种类查询。</summary>
+        public string GetKeyStrFunction(string configName, bool isUnique, bool hasUnique, bool hasNoUnique)
         {
+            if ((isUnique && !hasUnique) || (!isUnique && !hasNoUnique)) return "";
+            string dataType = configName + "DataConfig";
+            var output = new StringBuilder();
+            output.AppendLine("\t/// <summary>" + (isUnique
+                ? "按索引取首条配置；无命中返回默认值。数组为表缓存，请勿修改。"
+                : "按表格顺序取全部命中配置；无命中返回空列表。数组为表缓存，请勿修改。") + "</summary>");
+            output.AppendLine("\tpublic " + (isUnique ? dataType : "List<" + dataType + ">") +
+                " " + (isUnique ? "GetConfigByKey" : "GetConfigsByKey") + "(string keyName, string value)");
+            output.AppendLine("\t{");
             if (isUnique)
             {
-                string temp1 = "";
-                string temp2 = "";
-                if (hasNoUnique)
-                {
-                    temp2 = "\t\telse if(configListDic.TryGetValue(keyName, out dicListCache))" + newLine +
-                        "\t\t{" + newLine +
-                        "\t\t\tif(dicListCache.TryGetValue(value, out indexListCache))" + newLine +
-                        "\t\t\t{" + newLine +
-                        "\t\t\t\treturn DeserializeByIndex(indexListCache[0]);" + newLine +
-                        "\t\t\t}" + newLine+
-                        "\t\t\telse" + newLine +
-                        "\t\t\t{" + newLine +
-                        "\t\t\t\treturn new "+configName+"DataConfig();" + newLine +
-                        "\t\t\t}" + newLine +
-                        "\t\t}" + newLine;
-                }
-                return "\tpublic " + configName + "DataConfig GetConfigByKey(string keyName, string value)" + newLine +
-                        "\t{" + newLine +
-                        "\t\tif (configDic.TryGetValue(keyName, out dicCache))" + newLine +
-                        "\t\t{" + newLine +
-                        "\t\t\tint index;" + newLine +
-                        "\t\t\tdicCache.TryGetValue(value, out index);" + newLine +
-                        "\t\t\treturn DeserializeByIndex(index);" + newLine +
-                        "\t\t}" + newLine +
-                        temp2 +
-                        "\t\telse" + newLine +
-                        "\t\t{" + newLine +
-                        "\t\t\treturn new " + configName + "DataConfig();" + newLine +
-                        "\t\t}" + newLine +
-                        "\t}" + newLine;
+                output.AppendLine("\t\tif (keyName == null || value == null) return default(" + dataType + ");");
             }
             else
             {
-                if (hasNoUnique)
-                {
-                    return "\tpublic List<"+ configName+"DataConfig> GetConfigsByKey(string keyName, string value)" + newLine +
-                            "\t{" + newLine +
-                            "\t\tconfigListDic.TryGetValue(keyName, out dicListCache);" + newLine +
-                            "\t\tif (dicListCache.TryGetValue(value, out indexListCache))" + newLine +
-                            "\t\t{" + newLine +
-                            "\t\t\tconfigLineListCache = new List<" + configName + "DataConfig>(indexListCache.Count);" + newLine +
-                            "\t\t\tfor (int i = 0; i < indexListCache.Count; i++)" + newLine +
-                            "\t\t\t{" + newLine +
-                            "\t\t\t\tconfigLineListCache.Add(DeserializeByIndex(i));" + newLine +
-                            "\t\t\t}" + newLine +
-                            "\t\t}" + newLine +
-                            "\t\telse" + newLine +
-                            "\t\t{" + newLine +
-                            "\t\t\tconfigLineListCache = new List<" + configName + "DataConfig>();" + newLine +
-                            "\t\t\tconfigLineListCache.Add(GetConfigByKey(keyName, value));" + newLine +
-                            "\t\t}" + newLine +
-                            "\t\treturn configLineListCache;" + newLine +
-                            "\t}" + newLine;
-                }
+                output.AppendLine("\t\tvar result = new List<" + dataType + ">();");
+                output.AppendLine("\t\tif (keyName == null || value == null) return result;");
+            }
+            if (hasUnique)
+            {
+                output.AppendLine("\t\tif (configDic.TryGetValue(keyName, out var indices) && indices.TryGetValue(value, out int index))");
+                output.AppendLine("\t\t{");
+                output.AppendLine(isUnique ? "\t\t\treturn DeserializeByIndex(index);" : "\t\t\tresult.Add(DeserializeByIndex(index));");
+                if (!isUnique) output.AppendLine("\t\t\treturn result;");
+                output.AppendLine("\t\t}");
+            }
+            if (hasNoUnique)
+            {
+                output.AppendLine("\t\tif (configListDic.TryGetValue(keyName, out var groups) && groups.TryGetValue(value, out var rows))");
+                output.AppendLine("\t\t{");
+                if (isUnique)
+                    output.AppendLine("\t\t\treturn DeserializeByIndex(rows[0]);");
                 else
                 {
-                    return "\tpublic List<"+ configName+"DataConfig> GetConfigsByKey(string keyName, string value)" + newLine +
-                        "\t{" + newLine +
-                        "\t\tList<"+ configName+ "DataConfig> configLineList; " + newLine +
-                        "\t\tconfigLineList = new List<"+ configName+ "DataConfig>();" + newLine +
-                        "\t\tconfigLineList.Add(GetConfigByKey(keyName, value));" + newLine +
-                        "\t\treturn configLineList;" + newLine +
-                        "\t}" + newLine;
+                    output.AppendLine("\t\t\tresult.Capacity = rows.Count;");
+                    output.AppendLine("\t\t\tfor (int i = 0; i < rows.Count; i++) result.Add(DeserializeByIndex(rows[i]));");
                 }
+                output.AppendLine("\t\t}");
             }
+            output.AppendLine("\t\treturn " + (isUnique ? "default(" + dataType + ")" : "result") + ";");
+            output.AppendLine("\t}");
+            return output.ToString();
         }
         public string GetDic(string fildName, bool isList)
         {
@@ -237,31 +176,36 @@ namespace ConfigTool
             string temp = isList ? "List" : "";
             return "\t\tconfig"+temp+"Dic.Add(\""+fildName+"\","+ fildName+ temp+"Dic);" +newLine;
         }
-        public string GetInit(string configName,bool hasNoUnique,string strDic)
+        /// <summary>重建索引与解析缓存；再次 Init 不复用旧行结果。</summary>
+        public string GetInit(string configName, bool hasUnique, bool hasNoUnique, string strDic)
         {
-            string temp = "\tpublic void Init(List<string[]> data)" + newLine +
-                          "\t{" + newLine +
-                          "\t\tthis.data = data;" + newLine +
-                           "\t\tcache = new " + configName + "DataConfig();" + newLine +
-                          "\t\tconfigDic = new Dictionary<string, Dictionary<string, int>>();" + newLine;
+            string temp = "\t/// <summary>初始化只读配置和索引；重新初始化会替换本容器的行缓存。</summary>" + newLine +
+                "\tpublic void Init(List<string[]> data)" + newLine + "\t{" + newLine +
+                "\t\tif (data == null) throw new ArgumentNullException(nameof(data));" + newLine +
+                "\t\tthis.data = data;" + newLine +
+                "\t\tparsedRows = new " + configName + "DataConfig[data.Count];" + newLine +
+                "\t\tparsedFlags = new bool[data.Count];" + newLine;
+            if (hasUnique)
+                temp += "\t\tconfigDic = new Dictionary<string, Dictionary<string, int>>();" + newLine;
             if (hasNoUnique)
-            {
                 temp += "\t\tconfigListDic = new Dictionary<string, Dictionary<string, List<int>>>();" + newLine;
-            }
             temp += strDic;
-            temp += "\t\tfor (int i = 0; i < data.Count; i++)" + newLine +
-                    "\t\t{" + newLine;
+            temp += "\t\tfor (int i = 0; i < data.Count; i++)" + newLine + "\t\t{" + newLine;
             return temp;
         }
+        /// <summary>每行只解析一次，缓存数组由 ConfigSet 的值类型副本共享。</summary>
         public string GetDeserialize(string configName)
         {
-            return "\tprivate "+ configName+"DataConfig DeserializeByIndex(int i)" + newLine +
-                   "\t{" + newLine;
+            return "\t/// <summary>首次访问解析该行，后续访问复用解析结果。</summary>" + newLine +
+                "\tprivate " + configName + "DataConfig DeserializeByIndex(int i)" + newLine + "\t{" + newLine +
+                "\t\tif (parsedFlags[i]) return parsedRows[i];" + newLine +
+                "\t\tvar cache = new " + configName + "DataConfig();" + newLine;
         }
+        /// <summary>完整解析成功后才标记缓存有效。</summary>
         public string GetDeserializeEnd()
         {
-            return "\t\treturn cache;" + newLine +
-                   "\t}" + newLine;
+            return "\t\tparsedRows[i] = cache;" + newLine + "\t\tparsedFlags[i] = true;" + newLine +
+                "\t\treturn cache;" + newLine + "\t}" + newLine;
         }
         public string GetEnd()
         {
@@ -292,9 +236,11 @@ namespace ConfigTool
             }
             return temp;
         }
+        /// <summary>生成返回独立列表的全表查询，列表内数组仍引用只读行缓存。</summary>
         public string GetStrAllConfig(string configName)
         {
             string temp="";
+            temp += "\t/// <summary>返回全表的独立列表；配置中的数组为只读共享缓存。</summary>" + newLine;
             temp += "\tpublic List<" + configName + "DataConfig> GetAllConfig()" + newLine +
                 "\t{" + newLine +
                 "\t\tList<" + configName + "DataConfig> temp = new List<" + configName + "DataConfig>(data.Count);" + newLine +

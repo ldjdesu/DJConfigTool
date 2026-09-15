@@ -50,21 +50,24 @@ namespace ConfigTool
             }
         }
 
-        static void Main(string[] args)
+        /// <summary>生成配置；失败返回非零退出码，便于批处理停止同步。</summary>
+        static int Main(string[] args)
         {
-            /*args = new string[1];
-            args[0] = "";*/
-            Model model=new CSharpModel();
+            Model model = new CSharpModel();
             ConfigSet configSet = new CSharpConfigSet();
-            Console.WriteLine("Hello World!");
-            
-            string csvPath = args[0]+ @".\Data\CsvOld";
-            string csvNewPath = args[0] + @".\Data\CsvNew";
-            string cSharpPath = args[0]+ @".\Data\CSharp";
-            string md5Path = args[0]+ @".\Data\MD5";
-            string ConfigDefinePath = args[0]+ @".\ConfigDefine.xml";
+            string root = args.Length == 0 || string.IsNullOrEmpty(args[0]) ? "." : args[0];
+            string csvPath = Path.Combine(root, "Data", "CsvOld");
+            string csvNewPath = Path.Combine(root, "Data", "CsvNew");
+            string cSharpPath = Path.Combine(root, "Data", "CSharp");
+            string md5Path = Path.Combine(root, "Data", "MD5");
+            string ConfigDefinePath = Path.Combine(root, "ConfigDefine.xml");
             try
             {
+                Directory.CreateDirectory(csvNewPath);
+                Directory.CreateDirectory(cSharpPath);
+                Directory.CreateDirectory(md5Path);
+                // 模板程序集或 XML 定义变化时，未改动的表也必须重新生成。
+                string generatorStamp = typeof(Program).Assembly.ManifestModule.ModuleVersionId.ToString() + File.ReadAllText(ConfigDefinePath);
                 XmlDocument definedoc = new XmlDocument();
                 definedoc.Load(ConfigDefinePath);
                 Dictionary<string, CodeTransform> enumDic = new Dictionary<string, CodeTransform>();
@@ -148,8 +151,8 @@ namespace ConfigTool
                     //======================构建model类 Start
                     string outText = GenerateModel(model, configName, csvRows, filePath, enumDic, structDic);
 
-                    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-                    Byte[] newMD5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
+                    using MD5 md5 = MD5.Create();
+                    Byte[] newMD5Bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(generatorStamp + str));
                     var sBuilder = new StringBuilder();
                     for (int i = 0; i < newMD5Bytes.Length; i++)
                     {
@@ -160,7 +163,10 @@ namespace ConfigTool
                     string oldMD5;
                     if (configName_MD5.TryGetValue(configName,out oldMD5))
                     {
-                        if (newMD5Str== oldMD5)//对比md5
+                        if (newMD5Str == oldMD5 &&
+                            File.Exists(Path.Combine(cSharpPath, configName + "DataConfig.cs")) &&
+                            File.Exists(Path.Combine(cSharpPath, configName + "_ConfigSet.cs")) &&
+                            File.Exists(Path.Combine(csvNewPath, configName + ".csv")))//对比md5及输出完整性
                         {
                             continue;
                         }
@@ -246,12 +252,12 @@ namespace ConfigTool
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine("有错误，点击任意键退出");
-                Console.ReadKey();
+                Console.Error.WriteLine(e.ToString());
+                return 1;
             }
 
             Console.WriteLine("构建完成");
+            return 0;
         }
 
         static private List<string[]> ReadCsvRows(string filePath)
@@ -300,6 +306,7 @@ namespace ConfigTool
             return string.Empty;
         }
 
+        /// <summary>生成配置行类型，仅支持跨列定长数组及结构体数组。</summary>
         static private string GenerateModel(Model model, string configName, List<string[]> csvRows, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
         {
             //构建开头
@@ -367,9 +374,9 @@ namespace ConfigTool
                             outPut += model.GetType(realTypeStr, fildStr[i + 1],true, isDefine, notesStr[i]);
                             i += size;
                         }
-                        else//数组模式2
+                        else
                         {
-                            outPut += model.GetType(suffix, fildStr[i],true,false, notesStr[i]);
+                            throw new InvalidDataException("已移除分号数组 " + typeStr[i] + "，请使用 Array_N 跨列定长数组。路径：" + filePath);
                         }
                     }
                     else
@@ -388,6 +395,7 @@ namespace ConfigTool
             return outPut;
         }
 
+        /// <summary>根据字段和索引元数据生成查询 API 与逐行解析代码。</summary>
         static private string GenerateSet(ConfigSet configSet, string configName, List<string[]> csvRows, string filePath, Dictionary<string, CodeTransform> enumDic, Dictionary<string, CodeTransform> structDic)
         {
             string[] typeStrTemp = csvRows[1];//0行是注释，跳过
@@ -410,17 +418,10 @@ namespace ConfigTool
                     indexStr.Add(indexStrTemp[i]);
                 }
             }
-            bool hasNoUnique = false;
-            for (int i = 0; i < indexStr.Count; i++)
-            {
-                if (indexStr[i].Contains("NoUnique"))
-                {
-                    hasNoUnique = true;
-                    break;
-                }
-            }
+            bool hasUnique = indexStr.Contains("Index_Unique");
+            bool hasNoUnique = indexStr.Contains("Index_NoUnique");
             //构建开头
-            string outPut = configSet.GetStart(configName, hasNoUnique);
+            string outPut = configSet.GetStart(configName, hasUnique, hasNoUnique);
             //构建字段
             string strDic = "";//索引的开始
             string strDicEnd = "";//索引的结尾
@@ -430,7 +431,7 @@ namespace ConfigTool
                 if (indexStr[i].Length != 0)
                 {
                     string[] indexDivision = indexStr[i].Split('_');
-                    if (indexDivision[0] == "Index")
+                    if (indexDivision.Length == 2 && indexDivision[0] == "Index")
                     {
                         if (indexDivision[1] == "Unique")
                         {
@@ -462,15 +463,13 @@ namespace ConfigTool
                     continue;
                 }
             }
-            outPut += configSet.GetKeyStrFunction(configName, true, hasNoUnique);
-            outPut += configSet.GetKeyStrFunction(configName, false, hasNoUnique);
+            outPut += configSet.GetKeyStrFunction(configName, true, hasUnique, hasNoUnique);
+            outPut += configSet.GetKeyStrFunction(configName, false, hasUnique, hasNoUnique);
 
             int flag = 0;//标志位(1为结构体数组模式)
             int offset = 0;//长度位
             string structName = "";//缓存结构体字段名
             int num = 1;//临时变量名序号
-            string arrayCache = "";
-            string arrayCacheNew = "";
             outPut += configSet.GetDeserialize(configName);
             CodeTransform tempCodeTransform;
             CodeTransform tempCodeTransform2;
@@ -489,8 +488,6 @@ namespace ConfigTool
                     string fildName = fildStr[i];
                     if (isArray)
                     {
-                        arrayCache += configSet.GetArrayCache("ConfigDefine." + structName, num);
-                        arrayCacheNew += configSet.GetArrayCacheNew("ConfigDefine." + structName, num, offset);
                         outPut += configSet.GetStructArray(configName, structName, i, ref num, offset, size);
                         int nowIndex = i;
                         CodeTransform tempCodeTransformLoop;
@@ -577,14 +574,12 @@ namespace ConfigTool
                                 realTypeStr = tempCodeTransform.code;
                                 isDefine = true;
                             }
-                            arrayCache += configSet.GetArrayCache(realTypeStr, num, isDefine);
-                            arrayCacheNew += configSet.GetArrayCacheNew(realTypeStr, num, size, isDefine);
-                            outPut += configSet.GetArray(configName, realTypeStr, fildStr[i + 1], i, ref num, 1, size, isDefine);
+                            outPut += configSet.GetArray(configName, realTypeStr, fildStr[i + 1], i, ref num, size, isDefine);
                             i += size;
                         }
-                        else//数组模式2
+                        else
                         {
-                            outPut += configSet.GetArray(configName, suffix, fildStr[i], i, ref num, 2);
+                            throw new InvalidDataException("已移除分号数组 " + typeStr[i] + "，请使用 Array_N 跨列定长数组。路径：" + filePath);
                         }
                     }
                     else
@@ -599,9 +594,8 @@ namespace ConfigTool
                 }
             }
             outPut += configSet.GetDeserializeEnd();
-            outPut += arrayCache;
 
-            outPut += configSet.GetInit(configName, hasNoUnique, strDic+ arrayCacheNew);
+            outPut += configSet.GetInit(configName, hasUnique, hasNoUnique, strDic);
 
             for (int i = 0; i < typeStr.Count; i++)
             {
