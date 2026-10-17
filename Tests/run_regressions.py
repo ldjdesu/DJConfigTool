@@ -43,7 +43,12 @@ def main():
         with (old / (name + '.csv')).open('w', encoding='utf-8', newline='') as stream:
             csv.writer(stream).writerows(rows)
     command = ['dotnet', args.tool, root]
+    # 四行表头空表必须生成可由生产解析器读取的零记录CSV，不能是空字符串。
+    (old / 'Empty.csv').write_text('ID\nUInt32\nid\nIndex_Unique\n', encoding='utf-8')
     run(command)
+    empty_output = (root / 'Data/CsvNew/Empty.csv').read_text(encoding='utf-8-sig')
+    assert empty_output and not empty_output.strip(), 'empty tables must contain a blank line, not an empty string'
+    print('PASS header-only table generation')
     sets = root / 'Data/CSharp'
     stamp = (sets / 'Mixed_ConfigSet.cs').stat().st_mtime_ns
     run(command)

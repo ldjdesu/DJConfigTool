@@ -29,6 +29,7 @@ namespace ConfigTool
             temp += GetTypeToString(typeName, "data[i][" + index + "]") + ";" + newLine;
             return temp;
         }
+        /// <summary>生成索引写入，重复唯一键报告表、字段、行及键值。</summary>
         public string GetDicAdd(string fildName, bool isList, int index, ref int num)
         {
             string temp = "";
@@ -49,6 +50,7 @@ namespace ConfigTool
             }
             else
             {
+                temp += "\t\t\tif (" + fildName + "Dic.ContainsKey(data[i][" + index + "])) throw new ArgumentException(GetType().Name + \" 行\" + (i + 1) + \" 字段 " + fildName + " 重复键：\" + data[i][" + index + "]);" + newLine;
                 temp += "\t\t\t" + fildName + "Dic.Add(data[i][" + index + "], i);" + newLine;
             }
 

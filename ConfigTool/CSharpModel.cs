@@ -35,9 +35,10 @@ namespace ConfigTool
                     "using UnityEngine;" + newLine +
                     "using System;" + newLine;
         }
+        /// <summary>配置行可作为战斗准备快照的值记录进行序列化。</summary>
         public string GetClassHead(string className)
         {
-            return "public struct " + className + "DataConfig:IDataConfigLine" + newLine +
+            return "[Serializable]" + newLine + "public struct " + className + "DataConfig:IDataConfigLine" + newLine +
                     "{" + newLine;
         }
         public string GetDefineHead()

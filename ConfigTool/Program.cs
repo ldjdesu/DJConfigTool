@@ -279,6 +279,7 @@ namespace ConfigTool
             return rows;
         }
 
+        /// <summary>写入CSV；合法空表保留空行，供生产解析器读取零条记录。</summary>
         static private void WriteCsvRows(string filePath, List<string[]> rows)
         {
             var config = new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
@@ -287,6 +288,8 @@ namespace ConfigTool
             };
             using var writer = new StreamWriter(filePath, false, new UTF8Encoding(true));
             using var csvWriter = new CsvWriter(writer, config);
+            // 合法的四行表头空表写入一个空行，生产解析器可据此读取零条记录。
+            if (rows.Count == 0) writer.WriteLine();
             foreach (var row in rows)
             {
                 foreach (var cell in row)
